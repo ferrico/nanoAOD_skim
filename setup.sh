@@ -1,3 +1,5 @@
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa
 git clone git@github.com:jbeder/yaml-cpp.git external/yaml-cpp
 cd external/yaml-cpp/
 git apply ../yamlcpp_pkg_py2to3.patch
