@@ -1,9 +1,6 @@
-cmsrel CMSSW_14_0_2
-cd CMSSW_14_0_2/src
-cmsenv
+git clone  git@github.com:ferrico/nanoAOD-tools.git PhysicsTools/NanoAODTools
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_rsa
-git clone  git@github.com:ferrico/nanoAOD-tools.git PhysicsTools/NanoAODTools
 cd $CMSSW_BASE/src
 git clone https://github.com/ferrico/nanoAOD_skim.git PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim
 cd PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim
