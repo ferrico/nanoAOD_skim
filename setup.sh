@@ -1,8 +1,3 @@
-git clone  git@github.com:ferrico/nanoAOD-tools.git PhysicsTools/NanoAODTools
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_rsa
-cd $CMSSW_BASE/src
-git clone https://github.com/ferrico/nanoAOD_skim.git PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim
 cd PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim
 git checkout ZXCR_EL9
 git clone git@github.com:jbeder/yaml-cpp.git external/yaml-cpp
