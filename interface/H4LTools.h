@@ -9,18 +9,23 @@
 #include <vector>
 #include "yaml-cpp/yaml.h"
 #include "../JHUGenMELA/MELA/interface/Mela.h"
+//#include "KinZfitter/KinZfitter/interface/KinZfitter.h"
+//#include "PhysicsTools/NanoAODTools/interface/KinZfitter.h"
+#include <TMVA/Tools.h>
+#include <TMVA/Reader.h>
+#include <TMVA/MsgLogger.h>
 
 class H4LTools {
     public:
       H4LTools(int year, bool isMC_);
+      std::vector<float> mvaEstimation(TString weight);
       float elePtcut, MuPtcut, eleEtacut, MuEtacut, elesip3dCut, Musip3dCut,Zmass,MZ1cut,MZcutup,MZcutdown,MZZcut,HiggscutUp,HiggscutDown;
       float eleLoosedxycut,eleLoosedzcut,MuLoosedxycut,MuLoosedzcut,MuTightdxycut,MuTightdzcut,MuTightTrackerLayercut,MuTightpTErrorcut,MuHighPtBound,eleIsocut,MuIsocut;
       float fsrphotonPtcut,fsrphotonEtacut,fsrphotonIsocut,fsrphotondRlcut,fsrphotondRlOverPtcut, JetPtcut,JetEtacut;
       float eleBDTWPLELP,eleBDTWPMELP,eleBDTWPHELP,eleBDTWPLEHP,eleBDTWPMEHP,eleBDTWPHEHP;
       float mass3l;
-      bool passedZ1LSelection, passedFullSelection, passedZXCRSelection, isMC;
-      bool isFiducialAna = false;
-      int nfailedleptons;
+      bool passedZ1LSelection;
+      bool RecoFourMuEvent, RecoFourEEvent, RecoTwoETwoMuEvent, RecoTwoMuTwoEEvent;
       void InitializeElecut(float elePtcut_,float eleEtacut_,float elesip3dCut_,float eleLoosedxycut_,float eleLoosedzcut_,float eleIsocut_,float eleBDTWPLELP_,float eleBDTWPMELP_, float eleBDTWPHELP_,float eleBDTWPLEHP_,float eleBDTWPMEHP_,float eleBDTWPHEHP_){
         elePtcut = elePtcut_;
         eleEtacut = eleEtacut_;
@@ -69,7 +74,7 @@ class H4LTools {
         MZcutup = MZcutup_;
       }
       void SetElectrons(float Electron_pt_, float Electron_eta_, float Electron_phi_, float Electron_mass_, float Electron_dxy_,float Electron_dz_,
-                        float Electron_sip3d_, float Electron_mvaFall17V2Iso_, int Electron_pdgId_, int Electron_charge_, float Electron_pfRelIso03_all_){
+                        float Electron_sip3d_, float Electron_mvaHZZIso_, int Electron_pdgId_, int Electron_charge_, float Electron_pfRelIso03_all_, float Electron_uncorrected_pt_, float Electron_energyErr_){
         Electron_pt.push_back(Electron_pt_); 
         Electron_phi.push_back(Electron_phi_);
         Electron_eta.push_back(Electron_eta_);
@@ -77,11 +82,30 @@ class H4LTools {
         Electron_dxy.push_back(Electron_dxy_);
         Electron_dz.push_back(Electron_dz_);
         Electron_sip3d.push_back(Electron_sip3d_);
-        Electron_mvaFall17V2Iso.push_back(Electron_mvaFall17V2Iso_);
+        Electron_mvaHZZIso.push_back(Electron_mvaHZZIso_);
         Electron_pdgId.push_back(Electron_pdgId_);
+	Electron_charge.push_back(Electron_charge_);
         Electron_pfRelIso03_all.push_back(Electron_pfRelIso03_all_);
-        Electron_charge.push_back(Electron_charge_);
+	Electron_uncorrected_pt.push_back(Electron_uncorrected_pt_);
+	Electron_energyErr.push_back(Electron_energyErr_);
       }
+
+	void SetLowElectrons(float LowElectron_pt_, float LowElectron_eta_, float LowElectron_phi_, float LowElectron_mass_, float LowElectron_dxy_, 
+		float LowElectron_dz_, float LowElectron_ID_, int LowElectron_pdgId_, int LowElectron_charge_, float LowElectron_miniPFRelIso_all_, float LowElectron_energyErr_){
+
+		LowElectron_pt.push_back(LowElectron_pt_);
+	        LowElectron_eta.push_back(LowElectron_eta_);
+        	LowElectron_phi.push_back(LowElectron_phi_);
+	        LowElectron_mass.push_back(LowElectron_mass_);
+        	LowElectron_dxy.push_back(LowElectron_dxy_);
+	        LowElectron_dz.push_back(LowElectron_dz_);
+        	LowElectron_ID.push_back(LowElectron_ID_);
+	        LowElectron_pdgId.push_back(LowElectron_pdgId_);
+        	LowElectron_charge.push_back(LowElectron_charge_);
+	        LowElectron_miniPFRelIso_all.push_back(LowElectron_miniPFRelIso_all_);
+		LowElectron_energyErr.push_back(LowElectron_energyErr_);
+	}
+
 
       void SetJets(float Jet_pt_, float Jet_eta_, float Jet_phi_, float Jet_mass_, int Jet_jetId_, float Jet_btagDeepC_,
                          int Jet_puId_){
@@ -97,7 +121,7 @@ class H4LTools {
       
       void SetMuons(float Muon_pt_, float Muon_eta_, float Muon_phi_, float Muon_mass_, bool Muon_isGlobal_, bool Muon_isTracker_,
                         float Muon_dxy_, float Muon_dz_,float Muon_sip3d_, float Muon_ptErr_,
-                        int Muon_nTrackerLayers_, int Muon_nStations_, bool Muon_isPFcand_, int Muon_pdgId_,int Muon_charge_, float Muon_pfRelIso03_all_
+			int Muon_nTrackerLayers_, bool Muon_isPFcand_, int Muon_pdgId_,int Muon_charge_, float Muon_pfRelIso03_all_, float Muon_pfRelIso03_chg_, float Muon_mva_, Int_t Muon_nStations_, bool Muon_isStandalone_, float Muon_bsConstrainedPt_, float Muon_bsConstrainedPtErr_, bool Muon_inTimeMuon_
                         ){
         Muon_pt.push_back(Muon_pt_); 
         Muon_phi.push_back(Muon_phi_);
@@ -110,12 +134,17 @@ class H4LTools {
         Muon_sip3d.push_back(Muon_sip3d_);
         Muon_ptErr.push_back(Muon_ptErr_);
         Muon_nTrackerLayers.push_back(Muon_nTrackerLayers_);
-        Muon_nStations.push_back(Muon_nStations_);
         Muon_isPFcand.push_back(Muon_isPFcand_);
         Muon_pdgId.push_back(Muon_pdgId_);
         Muon_charge.push_back(Muon_charge_);
         Muon_pfRelIso03_all.push_back(Muon_pfRelIso03_all_);
-        
+	Muon_pfRelIso03_chg.push_back(Muon_pfRelIso03_chg_);
+        Muon_mva.push_back(Muon_mva_);  
+	Muon_nStations.push_back(Muon_nStations_);
+	Muon_isStandalone.push_back(Muon_isStandalone_);
+	Muon_bsConstrainedPt.push_back(Muon_bsConstrainedPt_);
+	Muon_bsConstrainedPtErr.push_back(Muon_bsConstrainedPtErr_);
+	Muon_inTimeMuon.push_back(Muon_inTimeMuon_);
       }
       void SetMuonsGen(int Muon_genPartIdx_){
         Muon_genPartIdx.push_back(Muon_genPartIdx_);
@@ -123,6 +152,27 @@ class H4LTools {
       void SetElectronsGen(int Electron_genPartIdx_){
         Electron_genPartIdx.push_back(Electron_genPartIdx_);
       }
+      /*void SetMuons(TTreeReaderArray<float> *Muon_pt_, TTreeReaderArray<float> *Muon_eta_,
+                        TTreeReaderArray<float> *Muon_phi_, TTreeReaderArray<float> *Muon_mass_, TTreeReaderArray<bool> *Muon_isGlobal_, TTreeReaderArray<bool> *Muon_isTracker_,
+                        TTreeReaderArray<float> *Muon_dxy_, TTreeReaderArray<float> *Muon_dz_,TTreeReaderArray<float> *Muon_sip3d_, TTreeReaderArray<float> *Muon_ptErr_,
+                        TTreeReaderArray<int> *Muon_nTrackerLayers_, TTreeReaderArray<bool> *Muon_isPFcand_, TTreeReaderArray<int> *Muon_pdgId_,TTreeReaderArray<int> *Muon_charge_, TTreeReaderArray<float> *Muon_pfRelIso03_all_,
+                        TTreeReaderArray<int> *Muon_genPartIdx_){
+        Muon_pt = Muon_pt_; 
+        Muon_phi = Muon_phi_;
+        Muon_eta = Muon_eta_;
+        Muon_mass = Muon_mass_;
+        Muon_isGlobal = Muon_isGlobal_;
+        Muon_isTracker = Muon_isTracker_;
+        Muon_dxy = Muon_dxy_;
+        Muon_dz = Muon_dz_;
+        Muon_sip3d = Muon_sip3d_;
+        Muon_nTrackerLayers = Muon_nTrackerLayers_;
+        Muon_isPFcand = Muon_isPFcand_;
+        Muon_pdgId = Muon_pdgId_;
+        Muon_charge = Muon_charge_;
+        Muon_pfRelIso03_all = Muon_pfRelIso03_all_;
+        Muon_genPartIdx = Muon_genPartIdx_;
+      }*/
       void SetFsrPhotons(float FsrPhoton_dROverEt2_, float FsrPhoton_eta_,
                         float FsrPhoton_phi_, float FsrPhoton_pt_, float FsrPhoton_relIso03_, int FsrPhoton_electronIdx_, int FsrPhoton_muonIdx_){
         FsrPhoton_dROverEt2.push_back(FsrPhoton_dROverEt2_); 
@@ -133,11 +183,22 @@ class H4LTools {
         FsrPhoton_electronIdx.push_back(FsrPhoton_electronIdx_);
         FsrPhoton_muonIdx.push_back(FsrPhoton_muonIdx_);
       }
-      void SetGenParts(float GenPart_pt_, int GenPart_genPartIdxMother_, int GenPart_pdgId_){
+      /*void SetFsrPhotons(TTreeReaderArray<float> *FsrPhoton_dROverEt2_, TTreeReaderArray<float> *FsrPhoton_eta_,
+                        TTreeReaderArray<float> *FsrPhoton_phi_, TTreeReaderArray<float> *FsrPhoton_pt_, 
+                        TTreeReaderArray<float> *FsrPhoton_relIso03_){
+        FsrPhoton_dROverEt2 = FsrPhoton_dROverEt2_; 
+        FsrPhoton_phi = FsrPhoton_phi_;
+        FsrPhoton_eta = FsrPhoton_eta_;
+        FsrPhoton_pt = FsrPhoton_pt_;
+        FsrPhoton_relIso03 = FsrPhoton_relIso03_;
+        
+      }*/
+      void SetGenParts(float GenPart_pt_){
         GenPart_pt.push_back(GenPart_pt_);
-        GenPart_genPartIdxMother.push_back(GenPart_genPartIdxMother_);
-        GenPart_pdgId.push_back(GenPart_genPartIdxMother_);
       }
+      /*void SetGenParts(TTreeReaderArray<float> *GenPart_pt_){
+        GenPart_pt = GenPart_pt_;
+      }*/
       void SetObjectNum(unsigned nElectron_,unsigned nMuon_,unsigned nJet_,unsigned nFsrPhoton_){
         nElectron = nElectron_; 
         nMuon = nMuon_;
@@ -147,18 +208,24 @@ class H4LTools {
       void SetObjectNumGen(unsigned nGenPart_){
         nGenPart = nGenPart_;
       }
-
+      bool isMC;
       std::vector<unsigned int> goodLooseElectrons2012();
+      std::vector<unsigned int> goodLooseLowElectrons2012();
       std::vector<unsigned int> goodLooseMuons2012();
       std::vector<unsigned int> goodMuons2015_noIso_noPf(std::vector<unsigned int> Muonindex);
       std::vector<unsigned int> goodElectrons2015_noIso_noBdt(std::vector<unsigned int> Electronindex);
+      std::vector<unsigned int> goodLowElectrons2015_noIso_noBdt(std::vector<unsigned int> Electronindex);
       std::vector<bool> passTight_BDT_Id();
+      std::vector<bool> passTight_BDT_Id_LowElectron();
       std::vector<bool> passTight_Id();
       std::vector<unsigned int> goodFsrPhotons();
       unsigned doFsrRecovery(TLorentzVector Lep);
-      unsigned doFsrRecovery_Run3(std::vector<unsigned int> goodfsridx, unsigned lepidx, int lepflavor);//lepflavor 11 or 13
+      std::vector<int> doFsrRecovery_Run3(std::vector<unsigned int> goodfsridx, unsigned lepidx, int lepflavor);//lepflavor 11 or 13
+
+ //      unsigned doFsrRecovery_Run3(std::vector<unsigned int> goodfsridx, unsigned lepidx, int lepflavor);//lepflavor 11 or 13
       std::vector<TLorentzVector> BatchFsrRecovery(std::vector<TLorentzVector> LepList);
       void BatchFsrRecovery_Run3();
+
       std::vector<TLorentzVector> ElectronFsr();
       std::vector<TLorentzVector> MuonFsr();
       std::vector<float> ElectronFsrPt();
@@ -167,24 +234,13 @@ class H4LTools {
       std::vector<float> MuonFsrPt();
       std::vector<float> MuonFsrEta();
       std::vector<float> MuonFsrPhi();
-      std::vector<float> Z_pt;
-      std::vector<float> Z_eta;
-      std::vector<float> Z_phi;
-      std::vector<float> Z_mass;
-      std::vector<float> Z_noFSR_pt;
-      std::vector<float> Z_noFSR_eta;
-      std::vector<float> Z_noFSR_phi;
-      std::vector<float> Z_noFSR_mass;
-      std::vector<int> Z_lepindex1;
-      std::vector<int> Z_lepindex2;
-      void findHiggsCandidate();
       std::vector<unsigned int> SelectedJets(std::vector<unsigned int> ele, std::vector<unsigned int> mu);
+      std::vector<TLorentzVector> LowElectrondressed_Run3;
       std::vector<TLorentzVector> Electrondressed_Run3;
       std::vector<TLorentzVector> Muondressed_Run3;
       std::vector<TLorentzVector> Zlist;
       std::vector<TLorentzVector> Zlistnofsr;
       std::vector<int> Zflavor; //mu->13, e->11
-      std::vector<bool> Zistight;
       std::vector<int> Zlep1index;
       std::vector<int> Zlep2index;
       std::vector<int> Zlep1lepindex;
@@ -207,8 +263,6 @@ class H4LTools {
       std::vector<float> Zlep2etaNoFsr;
       std::vector<float> Zlep2phiNoFsr;
       std::vector<float> Zlep2massNoFsr;
-      std::vector<bool> Zlep1istight;
-      std::vector<bool> Zlep2istight;
       std::vector<unsigned int> jetidx;
       bool CutFlow_4Lepton,CutFlow_4LeptonOSSF,CutFlow_getTightZ,CutFlow_getTightZ1,CutFlow_lep_pTcut,CutFlow_lepdRcut,CutFlow_QCDcut,CutFlow_Smartcut,CutFlow_MZ1MZ2cut,CutFlow_M4Lcut,CutFlow_CR,CutFlow_SR;
       bool CutFlow_3Lep,CutFlow_properID,CutFlow_3LepDRcut,CutFlow_3LepPtcut,CutFlow_3LepQCDcut,CutFlow_tightZ1cut;
@@ -217,10 +271,7 @@ class H4LTools {
       int nTightEleChgSum;
       int nTightMuChgSum;
       int njets_pt30_eta4p7;
-      int nTightZ;
       int Lepointer;
-
-      unsigned int Z1LZ1index;
     
       bool flag4e;
       bool flag4mu;
@@ -228,43 +279,51 @@ class H4LTools {
 
       void LeptonSelection();
       void findZ1LCandidate();
-      std::vector<unsigned int> looseEle,looseMu,bestEle,bestMu, tighteleforjetidx, tightmuforjetidx;
+      std::vector<unsigned int> looseEle,looseLowEle,looseMu,bestEle,bestLowEle,bestMu, tighteleforjetidx, tightmuforjetidx;
       std::vector<unsigned int> Electronindex;
+      std::vector<unsigned int> LowElectronindex;
       std::vector<unsigned int> Muonindex;
       std::vector<bool> AllEid;
+      std::vector<bool> AllLowEid;
       std::vector<bool> AllMuid;
       std::vector<TLorentzVector> Elelist;
       std::vector<TLorentzVector> Mulist;
       std::vector<TLorentzVector> ElelistFsr;
       std::vector<TLorentzVector> MulistFsr;
-      std::vector<int> Elechg;
-      std::vector<int> Muchg;
-      std::vector<float> Muiso,Eiso;
-      std::vector<bool> Eid;
-      std::vector<bool> muid;
-      std::vector<bool> istightele;
-      std::vector<bool> istightmu;
-      float Z_Hindex[2];
-      std::vector<int> TightEleindex;
-      std::vector<int> TightMuindex;
-      std::vector<int> lep_genindex;
-      std::vector<bool> lep_tightId;
+      std::vector< std::vector<float> > Candidate;
+      std::vector< std::vector<float> > Candidate_VXBS;
+      std::map<unsigned int, TLorentzVector> fsrmap;
       std::vector<float> lep_pt;
+      std::vector<float> lep_ptError;
+      std::vector<float> lep_ptVXBS;
+      std::vector<float> lep_ptErrorVXBS;
       std::vector<float> lep_eta;
       std::vector<float> lep_phi;
       std::vector<float> lep_mass;
       std::vector<float> lepFSR_pt;
+      std::vector<float> lepFSR_ptVXBS;
       std::vector<float> lepFSR_eta;
       std::vector<float> lepFSR_phi;
       std::vector<float> lepFSR_mass;
-      std::vector<int> lep_matchedR03_PdgId;
-      std::vector<float> lep_RelIsoNoFSR;
-      std::vector<int> lep_matchedR03_MomId;
-      std::vector<int> lep_matchedR03_MomMomId;
+      std::vector<int> lep_charge;
       std::vector<int> lep_id;
-      std::vector<int> Elelep_index;
-      std::vector<int> Mulep_index;
-      float massZ1, massZ2, mass4l = -1;
+      std::vector<float> lep_tightId;
+      std::vector<float> lep_looseId;
+      std::vector<float> lep_RelIsoNoFSR;
+      std::vector<float> lep_lowEleBDT;
+      std::vector<bool> lep_inTimeMuon;
+      float mass4l_VXBS;
+      std::vector<int> Elechg;
+      std::vector<int> Muchg;
+      std::vector<float> Muiso,Eiso;
+      std::vector<float> Mumva;
+      std::vector<bool> Eid;
+      std::vector<bool> muid;
+      std::vector<bool> istightele;
+      std::vector<bool> istightmu;
+      std::vector<int> lep_genindex;
+      std::vector<int> TightElelep_index;
+      std::vector<int> TightMulep_index;
       int lep_Hindex[4];
       TLorentzVector Z1;
       TLorentzVector Z1nofsr;
@@ -272,46 +331,70 @@ class H4LTools {
       TLorentzVector Z2nofsr;
       TLorentzVector ZZsystem;
       TLorentzVector ZZsystemnofsr;
-      TLorentzVector Z1Vec,Z2Vec,HVec;
-      bool foundHiggsCandidate;
+      
+      std::vector<int> TightEleindex;
+      std::vector<int> TightMuindex;
       void Initialize(){
         looseEle.clear();
+	looseLowEle.clear();
         looseMu.clear();
         bestEle.clear();
+	bestLowEle.clear();
         bestMu.clear();
         tighteleforjetidx.clear();
         tightmuforjetidx.clear();
         Electronindex.clear();
-        Elelep_index.clear();
-        Mulep_index.clear();
-        lep_genindex.clear();
-        lep_tightId.clear();lep_RelIsoNoFSR.clear();
-        lep_pt.clear();lep_eta.clear(); lep_phi.clear();lep_mass.clear();lep_matchedR03_PdgId.clear();lep_matchedR03_MomId.clear();lep_matchedR03_MomMomId.clear();lep_id.clear();
-        lepFSR_pt.clear();lepFSR_eta.clear(); lepFSR_phi.clear();lepFSR_mass.clear();
+	LowElectronindex.clear();
         Muonindex.clear();
         AllEid.clear();
+	AllLowEid.clear();
         AllMuid.clear();
         Elelist.clear();
         Mulist.clear();
         ElelistFsr.clear();
         MulistFsr.clear();
-        Muondressed_Run3.clear();
-        Electrondressed_Run3.clear();
-        Electron_pt.clear();Electron_phi.clear();Electron_eta.clear();Electron_mass.clear();Electron_dxy.clear();Electron_dz.clear();Electron_sip3d.clear(); Electron_charge.clear();
-        Electron_mvaFall17V2Iso.clear();Electron_pdgId.clear();Electron_pfRelIso03_all.clear();
-        Muon_pt.clear();Muon_phi.clear();Muon_eta.clear();Muon_mass.clear();Muon_dxy.clear();Muon_dz.clear();Muon_sip3d.clear();Muon_ptErr.clear();Muon_pfRelIso03_all.clear();
+        Electron_pt.clear();Electron_phi.clear();Electron_eta.clear();Electron_mass.clear();Electron_dxy.clear();Electron_dz.clear();Electron_sip3d.clear();Electron_charge.clear();
+        Electron_mvaHZZIso.clear();Electron_pdgId.clear();Electron_genPartIdx.clear();Electron_pfRelIso03_all.clear();
+	Electron_uncorrected_pt.clear(); Electron_energyErr.clear();
+
+	LowElectron_pt.clear(); LowElectron_eta.clear(); LowElectron_phi.clear();	LowElectron_mass.clear();
+	LowElectron_dxy.clear(); LowElectron_dz.clear(); LowElectron_ID.clear(); LowElectron_miniPFRelIso_all.clear();
+	LowElectron_pdgId.clear(); LowElectron_charge.clear(); LowElectron_energyErr.clear();
+
+        Muon_pt.clear();Muon_phi.clear();Muon_eta.clear();Muon_mass.clear();Muon_dxy.clear();Muon_dz.clear();Muon_sip3d.clear();Muon_ptErr.clear();Muon_pfRelIso03_all.clear(); Muon_pfRelIso03_chg.clear(); Muon_mva.clear(); Muon_nStations.clear(); Muon_isStandalone.clear();
         Muon_nTrackerLayers.clear();Muon_genPartIdx.clear();Muon_pdgId.clear();Muon_charge.clear();
         Muon_isTracker.clear();Muon_isGlobal.clear();Muon_isPFcand.clear();
-        Jet_pt.clear();Jet_phi.clear();Jet_eta.clear();Jet_mass.clear();Jet_btagDeepC.clear();
-        Jet_jetId.clear();Jet_puId.clear();
-        FsrPhoton_dROverEt2.clear();FsrPhoton_phi.clear();FsrPhoton_eta.clear();FsrPhoton_pt.clear();FsrPhoton_relIso03.clear();
-        GenPart_pt.clear();
-        Z_pt.clear();Z_eta.clear();Z_phi.clear(); Z_mass.clear();Z_noFSR_pt.clear(); Z_noFSR_eta.clear();
-        Z_noFSR_phi.clear(); Z_noFSR_mass.clear(); Z_lepindex1.clear(); Z_lepindex2.clear();
+	Muon_bsConstrainedPt.clear(); Muon_bsConstrainedPtErr.clear(); 
+	Muon_inTimeMuon.clear();
+	Jet_pt.clear();Jet_phi.clear();Jet_eta.clear();Jet_mass.clear();Jet_btagDeepC.clear();
+        Jet_jetId.clear();Jet_puId.clear(); Zlep1lepindex.clear();Zlep2lepindex.clear();
+        FsrPhoton_dROverEt2.clear();FsrPhoton_phi.clear();FsrPhoton_eta.clear();FsrPhoton_pt.clear();FsrPhoton_relIso03.clear(); FsrPhoton_electronIdx.clear(); FsrPhoton_muonIdx.clear();
+        Candidate.clear();
+	Candidate_VXBS.clear();
+	mass4l_VXBS = 0;
+	fsrmap.clear();
+	lep_pt.clear();
+	lep_ptError.clear();
+	lep_ptVXBS.clear();
+	lep_ptErrorVXBS.clear();
+        lep_eta.clear();
+        lep_phi.clear();
+        lep_mass.clear();
+        lepFSR_pt.clear();lepFSR_eta.clear(); lepFSR_phi.clear();lepFSR_mass.clear();lepFSR_ptVXBS.clear();
+        lep_charge.clear();
+        lep_id.clear();
+        lep_tightId.clear();
+        lep_looseId.clear();
+        lep_RelIsoNoFSR.clear();
+	lep_lowEleBDT.clear();
+	lep_inTimeMuon.clear();
+	GenPart_pt.clear();
         Zlist.clear();
         Zlistnofsr.clear();
         Zflavor.clear();
-        Zistight.clear();
+        Electrondressed_Run3.clear();
+	LowElectrondressed_Run3.clear();
+        Muondressed_Run3.clear();
         Zlep1index.clear();
         Zlep2index.clear();
         Zlep1pt.clear(); Zlep1eta.clear(); Zlep1phi.clear(); Zlep1mass.clear();
@@ -319,27 +402,23 @@ class H4LTools {
         Zlep1chg.clear(); Zlep2chg.clear();
         Zlep1ptNoFsr.clear(); Zlep1etaNoFsr.clear(); Zlep1phiNoFsr.clear(); Zlep1massNoFsr.clear();
         Zlep2ptNoFsr.clear(); Zlep2etaNoFsr.clear(); Zlep2phiNoFsr.clear(); Zlep2massNoFsr.clear();
-        Zlep1istight.clear(); Zlep2istight.clear();Zlep1lepindex.clear();Zlep2lepindex.clear();
-        jetidx.clear();
+        jetidx.clear(); lep_genindex.clear(); TightElelep_index.clear();TightMulep_index.clear();
         looseEle.clear(); looseMu.clear(); bestEle.clear(); bestMu.clear();  tighteleforjetidx.clear();  tightmuforjetidx.clear(); 
         Electronindex.clear();  Muonindex.clear(); AllEid.clear(); AllMuid.clear(); Elelist.clear(); Mulist.clear(); ElelistFsr.clear(); Mulist.clear(); 
-        Elechg.clear(); Muchg.clear(); Muiso.clear();Eiso.clear(); Eid.clear(); muid.clear(); istightele.clear(); istightmu.clear(); TightEleindex.clear(); TightMuindex.clear();
-        nElectron = 0; nMuon = 0; nJet = 0; nFsrPhoton = 0; nGenPart = 0; mass3l = -99;
+        Elechg.clear(); Muchg.clear(); Muiso.clear(); Mumva.clear();Eiso.clear(); Eid.clear(); muid.clear(); istightele.clear(); istightmu.clear(); TightEleindex.clear(); TightMuindex.clear();
+	mass3l = -99;
         for (int i=0; i<4; i++) {lep_Hindex[i]=-1;}
-        Z_Hindex[0]=-1;Z_Hindex[1]=-1;
-        nTightEle = 0; nTightMu = 0; nTightEleChgSum = 0; nTightMuChgSum = 0; nTightZ = 0; nfailedleptons=0;
-        Z1LZ1index = -1;foundHiggsCandidate=false;
-        Lepointer = 0; njets_pt30_eta4p7=0;
-        massZ1 = -1;massZ2 = -1;mass4l = -1;
+        passedZ1LSelection = false;
         Z1.SetPtEtaPhiM(0,0,0,0);
-        Z1Vec.SetPtEtaPhiM(0,0,0,0);
-        Z2Vec.SetPtEtaPhiM(0,0,0,0);
-        HVec.SetPtEtaPhiM(0,0,0,0);
         Z1nofsr.SetPtEtaPhiM(0,0,0,0);
         Z2.SetPtEtaPhiM(0,0,0,0);
         Z2nofsr.SetPtEtaPhiM(0,0,0,0);
         ZZsystem.SetPtEtaPhiM(0,0,0,0);
         ZZsystemnofsr.SetPtEtaPhiM(0,0,0,0);
+        nElectron = 0; nMuon = 0; nJet = 0; nFsrPhoton = 0; nGenPart = 0;
+        nTightEle = 0; nTightMu = 0; nTightEleChgSum = 0; nTightMuChgSum = 0;
+        Lepointer = 0; 
+        
         pTL1 = -999; etaL1 = -999; phiL1 = -999; massL1 = -999;
         pTL2 = -999; etaL2 = -999; phiL2 = -999; massL2 = -999;
         pTL3 = -999; etaL3 = -999; phiL3 = -999; massL3 = -999;
@@ -347,10 +426,19 @@ class H4LTools {
 
         pTj1 = -99;  etaj1 = -99;  phij1 = -99;  mj1 = -99;
         pTj2 = -99;  etaj2 = -99;  phij2 = -99;  mj2 = -99;
-        CutFlow_4Lepton=false;CutFlow_4LeptonOSSF=false;CutFlow_getTightZ=false;CutFlow_getTightZ1=false;CutFlow_lep_pTcut=false;CutFlow_lepdRcut=false;CutFlow_QCDcut=false;CutFlow_Smartcut=false;CutFlow_MZ1MZ2cut=false;CutFlow_M4Lcut=false;CutFlow_CR=false;CutFlow_SR=false;
-        CutFlow_3Lep=false;CutFlow_properID=true;CutFlow_3LepDRcut=false;CutFlow_3LepPtcut=false;CutFlow_3LepQCDcut=false;CutFlow_tightZ1cut=false;
+	mjj = -999; etajj = -999; phijj = -999; Detajj = -999; Dphijj = -999;
+        mva_Rhard = -999; mva_zstar = -999; mva_cosTheta_star = -999;  mva_phiZZ = -999;  mva_phi1 = -999; mva_theta1 = -999; mva_theta2 = -999;
+	mva_output_ggH = -999; mva_output_VBF = -999; mva_output_WH = -999; mva_output_qqZZ = -999;
+	njets_pt30_eta4p7 = 0;
+        RecoFourMuEvent=false; RecoFourEEvent=false; RecoTwoETwoMuEvent=false; RecoTwoMuTwoEEvent=false;
         flag4e=false; flag4mu=false; flag2e2mu=false;
-        passedZ1LSelection = false; passedFullSelection = false; passedZXCRSelection = false;
+	
+	D_bkg_kin = -999;
+	D_bkg_VHdec = -999;
+	D_VBF1j = -999;
+	D_HadWH = -999;
+	D_HadZH = -999;
+	D_VBF = -999;
       }
       bool isFSR=true;
       unsigned int Zsize=0;
@@ -365,37 +453,71 @@ class H4LTools {
       float me_0plus_JHU, me_qqZZ_MCFM, p0plus_m4l, bkg_m4l;
       float D_bkg_kin, D_bkg, D_g4, D_g1g4, D_0m, D_CP, D_0hp, D_int, D_L1, D_L1_int, D_L1Zg, D_L1Zgint;
       float D_bkg_kin_vtx_BS;
+      float D_bkg_VHdec, D_VBF1j;
+      float D_HadWH, D_HadZH, D_VBF;
       float p0minus_VAJHU, Dgg10_VAMCFM, pg1g4_VAJHU;
       float p0plus_VAJHU, p_GG_SIG_ghg2_1_ghz1prime2_1E4_JHUGen, p_GG_SIG_ghg2_1_ghza1prime2_1E4_JHUGen, p_GG_SIG_ghg2_1_ghz1_1_ghza1prime2_1E4_JHUGen, p_GG_SIG_ghg2_1_ghz1_1_ghz1prime2_1E4_JHUGen, p_GG_SIG_ghg2_1_ghz1_1_ghz2_1_JHUGen, pDL1_VAJHU, pD_L1Zgint; //, p0plus_VAJHU;
+
+      int cut4e, cut4mu, cut2e2mu, cutZZ4e, cutZZ4mu, cutZZ2e2mu, cutm4l4e, cutm4l4mu, cutm4l2e2mu, cutghost2e2mu, cutQCD2e2mu, cutLepPt2e2mu, cutghost4e, cutQCD4e, cutLepPt4e, cutghost4mu, cutQCD4mu, cutLepPt4mu;
+      float pTL1, etaL1, phiL1, massL1, pTL2, etaL2, phiL2, massL2, pTL3, etaL3, phiL3, massL3, pTL4, etaL4, phiL4, massL4;
+      float pTj1, etaj1, phij1, mj1, pTj2, etaj2, phij2, mj2, mjj, etajj, phijj, Detajj, Dphijj;
+
+      float mva_Rhard, mva_zstar, mva_cosTheta_star, mva_phiZZ, mva_phi1, mva_theta1, mva_theta2;
+      float mva_output_ggH, mva_output_VBF, mva_output_WH, mva_output_qqZZ;
+
+      float getDbkgkinConstant(int ZZflav, float ZZMass);
+      float getDbkgConstant(int ZZflav, float ZZMass);
       float getDg4Constant(float ZZMass);
       float getDg2Constant(float ZZMass);
       float getDL1Constant(float ZZMass);
       float getDL1ZgsConstant(float ZZMass);
-
-      int cut4e, cut4mu, cut2e2mu, cutZZ4e, cutZZ4mu, cutZZ2e2mu, cutm4l4e, cutm4l4mu, cutm4l2e2mu, cutghost2e2mu, cutQCD2e2mu, cutLepPt2e2mu, cutghost4e, cutQCD4e, cutLepPt4e, cutghost4mu, cutQCD4mu, cutLepPt4mu;
-      float pTL1, etaL1, phiL1, massL1, pTL2, etaL2, phiL2, massL2, pTL3, etaL3, phiL3, massL3, pTL4, etaL4, phiL4, massL4;
-      float pTj1, etaj1, phij1, mj1, pTj2, etaj2, phij2, mj2;
-
-      int motherID(int Genidx);
-      int motheridx(int Genidx);
-      int mothermotherID(int Genidx);
+      float getDVBF2jetsConstant(float ZZMass);
+      float getDVBF1jetConstant(float ZZMass);
+      float getDWHhConstant(float ZZMass);
+      float getDZHhConstant(float ZZMass);
+      float getDbkgVBFdecConstant(int ZZflav, float ZZMass);
+      float getDbkgVHdecConstant(int ZZflav, float ZZMass);
       
+      TSpline3 *DbkgkinSpline2e2mu;
+      TSpline3 *DbkgkinSpline4e;
+      TSpline3 *DbkgkinSpline4mu;
+
+      TSpline3 *DbkgVBFdecSpline2l2l;
+      TSpline3 *DbkgVBFdecSpline4l;
+      TSpline3 *DbkgVHdecSpline2l2l;
+      TSpline3 *DbkgVHdecSpline4l;
+
+      TSpline3 *DjjVBFSpline;
+      TSpline3 *DjVBFSpline;
+      TSpline3 *DjjZHSpline;
+      TSpline3 *DjjWHSpline;
+
+
     private:
-      std::vector<float> Electron_pt,Electron_phi,Electron_eta,Electron_mass,Electron_dxy,Electron_dz,Electron_sip3d;
-      std::vector<float> Electron_mvaFall17V2Iso,Electron_pfRelIso03_all;
-      std::vector<int> Electron_pdgId,Electron_genPartIdx,Electron_charge;
+      //KinZfitter
+      //KinZfitter *kinZfitter;
+
+      std::vector<float> Electron_pt,Electron_phi,Electron_eta,Electron_mass,Electron_dxy,Electron_dz,Electron_sip3d, Electron_charge;
+      std::vector<float> Electron_mvaHZZIso,Electron_pfRelIso03_all;
+      std::vector<int> Electron_pdgId,Electron_genPartIdx;
+      std::vector<float> Electron_uncorrected_pt;
+      std::vector<float> Electron_energyErr;
+
+      std::vector<float> LowElectron_pt, LowElectron_eta, LowElectron_phi, LowElectron_mass;
+      std::vector<float> LowElectron_dxy, LowElectron_dz, LowElectron_ID, LowElectron_miniPFRelIso_all;
+      std::vector<int> LowElectron_pdgId, LowElectron_charge; 
+      std::vector<float> LowElectron_energyErr;
 
       std::vector<float> Jet_pt,Jet_phi,Jet_eta,Jet_mass,Jet_btagDeepC;
       std::vector<int> Jet_jetId,Jet_puId;
-
-      std::vector<float> Muon_pt,Muon_phi,Muon_eta,Muon_mass,Muon_dxy,Muon_dz,Muon_sip3d,Muon_ptErr,Muon_pfRelIso03_all;
-      std::vector<int> Muon_nStations,Muon_nTrackerLayers,Muon_genPartIdx,Muon_pdgId,Muon_charge;
-      std::vector<bool> Muon_isTracker,Muon_isGlobal,Muon_isPFcand;
-
+      std::vector<float> Muon_pt,Muon_phi,Muon_eta,Muon_mass,Muon_dxy,Muon_dz,Muon_sip3d,Muon_ptErr,Muon_pfRelIso03_all, Muon_pfRelIso03_chg, Muon_mva;
+      std::vector<int> Muon_nTrackerLayers,Muon_genPartIdx,Muon_pdgId,Muon_charge;
+      std::vector<Int_t> Muon_nStations;
+      std::vector<bool> Muon_isTracker,Muon_isGlobal,Muon_isPFcand, Muon_isStandalone;
+      std::vector<float> Muon_bsConstrainedPt; std::vector<float> Muon_bsConstrainedPtErr; std::vector<bool> Muon_inTimeMuon;
       std::vector<float> FsrPhoton_dROverEt2,FsrPhoton_phi,FsrPhoton_pt,FsrPhoton_relIso03,FsrPhoton_eta,FsrPhoton_muonIdx,FsrPhoton_electronIdx;
       
       std::vector<float> GenPart_pt;
-      std::vector<int> GenPart_pdgId, GenPart_genPartIdxMother;
       
       
       unsigned nElectron,nMuon,nJet,nGenPart,nFsrPhoton;
@@ -406,8 +528,7 @@ class H4LTools {
 
 H4LTools::H4LTools(int year, bool isMC_){
   isMC = isMC_;
-  std::cout<<"year"<<" "<<year<<std::endl;
-  mela = new Mela(13.0, 125.0, TVar::SILENT);
+  mela = new Mela(13.0, 125.0, TVar::ERROR);//TVar::SILENT);
   mela->setCandidateDecayMode(TVar::CandidateDecay_ZZ);  
   TFile *gConstant_g4 = TFile::Open("CoupleConstantsForMELA/gConstant_HZZ2e2mu_g4.root");
   spline_g4 = (TSpline*) gConstant_g4->Get("sp_tgfinal_HZZ2e2mu_SM_over_tgfinal_HZZ2e2mu_g4");
@@ -425,6 +546,58 @@ H4LTools::H4LTools(int year, bool isMC_){
   spline_L1Zgs = (TSpline*) gConstant_L1Zgs->Get("sp_tgfinal_HZZ2e2mu_SM_photoncut_over_tgfinal_HZZ2e2mu_L1Zgs");
   gConstant_L1Zgs->Close();
   delete gConstant_L1Zgs;
+
+
+
+    TFile *fDbkgkinSpline2e2mu = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_Dbkgkin_2e2mu13TeV.root");
+    DbkgkinSpline2e2mu = (TSpline3*) fDbkgkinSpline2e2mu->Get("sp_gr_varReco_Constant_Smooth");
+    fDbkgkinSpline2e2mu->Close();
+    delete fDbkgkinSpline2e2mu;
+    TFile *fDbkgkinSpline4e = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_Dbkgkin_4e13TeV.root");
+    DbkgkinSpline4e = (TSpline3*) fDbkgkinSpline4e->Get("sp_gr_varReco_Constant_Smooth");
+    fDbkgkinSpline4e->Close();
+    delete fDbkgkinSpline4e;
+    TFile *fDbkgkinSpline4mu = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_Dbkgkin_4mu13TeV.root");
+    DbkgkinSpline4mu = (TSpline3*) fDbkgkinSpline4mu->Get("sp_gr_varReco_Constant_Smooth");
+    fDbkgkinSpline4mu->Close();
+    delete fDbkgkinSpline4mu;
+
+    TFile *fDbkgVBFdecSpline2l2l = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_DbkgjjEWQCD_2l2l_JJVBFTagged_13TeV.root");
+    DbkgVBFdecSpline2l2l = (TSpline3*) fDbkgVBFdecSpline2l2l->Get("sp_gr_varReco_Constant_Smooth");
+    fDbkgVBFdecSpline2l2l->Close();
+    delete fDbkgVBFdecSpline2l2l;
+    TFile *fDbkgVBFdecSpline4l = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_DbkgjjEWQCD_4l_JJVBFTagged_13TeV.root");
+    DbkgVBFdecSpline4l = (TSpline3*) fDbkgVBFdecSpline4l->Get("sp_gr_varReco_Constant_Smooth");
+    fDbkgVBFdecSpline4l->Close();
+    delete fDbkgVBFdecSpline4l;
+
+    TFile *fDbkgVHdecSpline2l2l = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_DbkgjjEWQCD_2l2l_HadVHTagged_13TeV.root");
+    DbkgVHdecSpline2l2l = (TSpline3*) fDbkgVHdecSpline2l2l->Get("sp_gr_varReco_Constant_Smooth");
+    fDbkgVHdecSpline2l2l->Close();
+    delete fDbkgVHdecSpline2l2l;
+    TFile *fDbkgVHdecSpline4l = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_DbkgjjEWQCD_4l_HadVHTagged_13TeV.root");
+    DbkgVHdecSpline4l = (TSpline3*) fDbkgVHdecSpline4l->Get("sp_gr_varReco_Constant_Smooth");
+    fDbkgVHdecSpline4l->Close();
+    delete fDbkgVHdecSpline4l;
+
+    TFile *fDjjVBFSpline = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_DjjVBF13TeV.root");
+    DjjVBFSpline = (TSpline3*) fDjjVBFSpline->Get("sp_gr_varReco_Constant_Smooth");
+    fDjjVBFSpline->Close();
+    delete fDjjVBFSpline;
+    TFile *fDjVBFSpline = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_DjVBF13TeV.root");
+    DjVBFSpline = (TSpline3*) fDjVBFSpline->Get("sp_gr_varReco_Constant_Smooth");
+    fDjVBFSpline->Close();
+    delete fDjVBFSpline;
+
+    TFile *fDjjZHSpline = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_DjjZH13TeV.root");
+    DjjZHSpline = (TSpline3*) fDjjZHSpline->Get("sp_gr_varReco_Constant_Smooth");
+    fDjjZHSpline->Close();
+    delete fDjjZHSpline;
+    TFile *fDjjWHSpline = TFile::Open("/afs/cern.ch/work/f/ferrico/private/HZZ_UL/CMSSW_10_6_26/src/UFHZZAnalysisRun2/UFHZZ4LAna/data/SmoothKDConstant_m4l_DjjWH13TeV.root");
+    DjjWHSpline = (TSpline3*) fDjjWHSpline->Get("sp_gr_varReco_Constant_Smooth");
+    fDjjWHSpline->Close();
+    delete fDjjWHSpline;
+
 
   cut2e2mu = 0;
   cut4e = 0;
@@ -445,45 +618,48 @@ H4LTools::H4LTools(int year, bool isMC_){
   cutm4l4e = 0;
   cutm4l4mu = 0;
 
-  
 }
 
-int H4LTools::motherID(int Genidx){
-    int ID=0;
-    while(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]]!=2212 || abs(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]])!=21 || abs(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]])>6){
-        if(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]]!=GenPart_pdgId[Genidx]){
-            ID=GenPart_pdgId[GenPart_genPartIdxMother[Genidx]]; return ID;
-        }
-        else{
-            Genidx=GenPart_genPartIdxMother[Genidx];
-        }
-    }
-    return 2212;
+float H4LTools::getDbkgkinConstant(int ZZflav, float ZZMass){ // ZZflav==id1*id2*id3*id4
+    if (abs(ZZflav)==11*11*11*11 || abs(ZZflav)==2*11*11*11*11 || abs(ZZflav)==2*11*11*2*11*11) return DbkgkinSpline4e->Eval(ZZMass);
+    if (abs(ZZflav)==11*11*13*13 || abs(ZZflav)==2*11*11*13*13 || abs(ZZflav)==2*11*11*2*13*13) return DbkgkinSpline2e2mu->Eval(ZZMass);
+    if (abs(ZZflav)==13*13*13*13 || abs(ZZflav)==2*13*13*13*13 || abs(ZZflav)==2*13*13*2*13*13) return DbkgkinSpline4mu->Eval(ZZMass);
+    return 0.0;
 }
 
-int H4LTools::motheridx(int Genidx){
-    int ID=0;
-    while(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]]!=2212 || abs(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]])!=21 || abs(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]])>6){
-        if(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]]!=GenPart_pdgId[Genidx]){
-            ID=GenPart_genPartIdxMother[Genidx]; return ID;
-        }
-        else{
-            Genidx=GenPart_genPartIdxMother[Genidx];
-        }
-    }
-    return 0;
+float H4LTools::getDbkgConstant(int ZZflav, float ZZMass){
+    return getDbkgkinConstant(ZZflav, ZZMass);
 }
-int H4LTools::mothermotherID(int Genidx){
-    int ID=0;
-    while(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]]!=2212 || abs(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]])!=21 || abs(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]])>6){
-        if(GenPart_pdgId[GenPart_genPartIdxMother[Genidx]]!=GenPart_pdgId[Genidx] && GenPart_pdgId[GenPart_genPartIdxMother[GenPart_genPartIdxMother[Genidx]]]!=GenPart_pdgId[Genidx] && GenPart_pdgId[GenPart_genPartIdxMother[GenPart_genPartIdxMother[Genidx]]]!=GenPart_pdgId[GenPart_genPartIdxMother[Genidx]] ){
-            ID=GenPart_pdgId[GenPart_genPartIdxMother[GenPart_genPartIdxMother[Genidx]]]; return ID;
-        }
-        else{
-            Genidx=GenPart_genPartIdxMother[Genidx];
-        }
-    }
-    return 2212;
+
+float H4LTools::getDVBF2jetsConstant(float ZZMass){
+    return DjjVBFSpline->Eval(ZZMass);
 }
+
+float H4LTools::getDVBF1jetConstant(float ZZMass){
+    return DjVBFSpline->Eval(ZZMass);
+}
+
+float H4LTools::getDWHhConstant(float ZZMass){
+    return DjjWHSpline->Eval(ZZMass);
+}
+
+float H4LTools::getDZHhConstant(float ZZMass){
+    return DjjZHSpline->Eval(ZZMass);
+}
+
+float H4LTools::getDbkgVBFdecConstant(int ZZflav, float ZZMass) { // ZZflav==id1*id2*id3*id4
+    if (abs(ZZflav)==11*11*11*11 || abs(ZZflav)==2*11*11*11*11 || abs(ZZflav)==2*11*11*2*11*11) return DbkgVBFdecSpline4l->Eval(ZZMass);
+    if (abs(ZZflav)==11*11*13*13 || abs(ZZflav)==2*11*11*13*13 || abs(ZZflav)==2*11*11*2*13*13) return DbkgVBFdecSpline2l2l->Eval(ZZMass);
+    if (abs(ZZflav)==13*13*13*13 || abs(ZZflav)==2*13*13*13*13 || abs(ZZflav)==2*13*13*2*13*13) return DbkgVBFdecSpline4l->Eval(ZZMass);
+    return 0.0;
+}
+
+float H4LTools::getDbkgVHdecConstant(int ZZflav, float ZZMass) { // ZZflav==id1*id2*id3*id4
+    if (abs(ZZflav)==11*11*11*11 || abs(ZZflav)==2*11*11*11*11 || abs(ZZflav)==2*11*11*2*11*11) return DbkgVHdecSpline4l->Eval(ZZMass);
+    if (abs(ZZflav)==11*11*13*13 || abs(ZZflav)==2*11*11*13*13 || abs(ZZflav)==2*11*11*2*13*13) return DbkgVHdecSpline2l2l->Eval(ZZMass);
+    if (abs(ZZflav)==13*13*13*13 || abs(ZZflav)==2*13*13*13*13 || abs(ZZflav)==2*13*13*2*13*13) return DbkgVHdecSpline4l->Eval(ZZMass);
+    return 0.0;
+}
+
 #endif
 

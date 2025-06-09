@@ -1,6 +1,3 @@
-# NanoAOD Skim
-nanoAOD skiming code for H->ZZ->2l2Q studies.
-
 ## Code setup
 
 1. Step: 1: Get CMSSW release
@@ -14,7 +11,7 @@ nanoAOD skiming code for H->ZZ->2l2Q studies.
 2. Step: 2: Get  official nanoAODTools
 
    ```bash
-   git clone -b h4l_dev git@github.com:ram1123/nanoAOD-tools.git PhysicsTools/NanoAODTools
+   git clone  git@github.com:ferrico/nanoAOD-tools.git PhysicsTools/NanoAODTools
    ```
 
 3. Step: 3: Get our analysis repository

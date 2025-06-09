@@ -5,12 +5,13 @@ import argparse
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.muonScaleResProducer import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.eleScaleSmearingProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import createJMECorrector
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 
 # Custom module imports
-from H4Lmodule import *
+#from H4Lmodule import *
 from H4LCppModule import *
 from JetSFMaker import *
 
@@ -18,11 +19,10 @@ def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--inputFile", default="", type=str, help="Input file name")
-    parser.add_argument('-o', '--outputFile', default="skimmed_nano.root", type=str, help="Output file name")
-    parser.add_argument("-n", "--entriesToRun", default=1000, type=int, help="Set  to 0 if need to run over all entries else put number of entries to run")
-    parser.add_argument("-d", "--DownloadFileToLocalThenRun", default=True, type=bool, help="Download file to local then run")
+    parser.add_argument("-n", "--entriesToRun", default=0, type=int, help="Set  to 0 if need to run over all entries else put number of entries to run")
+    parser.add_argument("-d", "--DownloadFileToLocalThenRun", default=False, type=bool, help="Download file to local then run")
     parser.add_argument("--NOsyst", default=False, action="store_true", help="Do not run systematics")
-    parser.add_argument("--DEBUG", default=False, action="store_true", help="Print debug information")
+    parser.add_argument('-o', '--outputFile', default="skimmed_nano.root", type=str, help="Output file name")
     return parser.parse_args()
 
 
@@ -40,7 +40,6 @@ def main():
     modulesToRun = []
     isMC = True
     isFSR = True
-    isFiducialAna = True
     year = None
     cfgFile = None
     jsonFileName = None
@@ -69,6 +68,19 @@ def main():
     first_file = testfilelist[0]
     isMC = "/data/" not in first_file
 
+    if "Summer23" in first_file or "Run2023" in first_file:
+        """ 2023 run """
+        year = 2023
+        cfgFile = "Input_2023.yml"
+        jsonFileName = "golden_Json/Cert_Collisions2023_366442_370790_Golden.json"
+        sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2023
+        if "BPix":
+#            modulesToRun.extend([muonScaleRes2023BPix()]) # FIXME: Update for year 2023
+            modulesToRun.extend([eleScaleSmear2023BPix()]) # NOT APPLIED: change it in ../../modules/common/eleScaleSmearingProducer.py
+        else:
+#            modulesToRun.extend([muonScaleRes2023()]) # FIXME: Update for year 2023
+            modulesToRun.extend([eleScaleSmear2023()]) # NOT APPLIED: change it in ../../modules/common/eleScaleSmearingProducer.py
+
     if "Summer22" in first_file or "Run2022" in first_file:
         """Summer22 and Run2022 for identification of 2022 MC and data respectiverly
         """
@@ -76,7 +88,13 @@ def main():
         cfgFile = "Input_2022.yml"
         jsonFileName = "golden_Json/Cert_Collisions2022_355100_362760_Golden.json"
         sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2022
-        modulesToRun.extend([muonScaleRes2022()]) # FIXME: Update for year 2022
+        if not "EE" in first_file:
+#            modulesToRun.extend([muonScaleRes2022()]) # FIXME: Update for year 2022
+            modulesToRun.extend([eleScaleSmear2022()]) # NOT APPLIED: change it in ../../modules/common/eleScaleSmearingProducer.py
+        else:
+#            modulesToRun.extend([muonScaleRes2022EE()]) # FIXME: Update for year 2022
+            modulesToRun.extend([eleScaleSmear2022EE()]) # NOT APPLIED: change it in ../../modules/common/eleScaleSmearingProducer.p#y
+
     if "UL18" in first_file or "UL2018" in first_file:
         """UL2018 for identification of 2018 UL data and UL18 for identification of 2018 UL MC
         """
@@ -97,7 +115,7 @@ def main():
         sfFileName = "DeepCSV_102XSF_V2.csv"
         modulesToRun.extend([muonScaleRes2016()])
 
-    H4LCppModule = lambda: HZZAnalysisCppProducer(year,cfgFile, isMC, isFSR, isFiducialAna, args.DEBUG)
+    H4LCppModule = lambda: HZZAnalysisCppProducer(year,cfgFile, isMC, isFSR)
     modulesToRun.extend([H4LCppModule()])
 
     print("Input json file: {}".format(jsonFileName))
@@ -123,12 +141,7 @@ def main():
 
         # INFO: Keep the `fwkJobReport=False` to trigger `haddnano.py`
         #            otherwise the output file will have larger size then expected. Reference: https://github.com/cms-nanoAOD/nanoAOD-tools/issues/249
-        p=PostProcessor(".",testfilelist, None, None,modules = modulesToRun,
-                        provenance=True,fwkJobReport=True,
-                        haddFileName=args.outputFile,
-                        maxEntries=entriesToRun,
-                        prefetch=DownloadFileToLocalThenRun, longTermCache= True,   # prefetch: download file to local then run, longTermCache: keep the file in local after running so that if it is present use local instead of downloading again
-                        outputbranchsel="keep_and_drop.txt")
+        p=PostProcessor(".",testfilelist, None, None,modules = modulesToRun, provenance=True,fwkJobReport=True,haddFileName="skimmed_nano.root", maxEntries=entriesToRun, prefetch=DownloadFileToLocalThenRun, outputbranchsel="keep_and_drop.txt")
     else:
         #if (not args.NOsyst):
             # FIXME: JES not used properly
@@ -136,13 +149,7 @@ def main():
             #fatJetCorrector = createJMECorrector(isMC=isMC, dataYear=year, jesUncert="All", jetType = "AK8PFPuppi")
             #modulesToRun.extend([jetmetCorrector(), fatJetCorrector()])
 
-        p=PostProcessor(".",testfilelist, None, None, modules = modulesToRun,
-                        provenance=True, fwkJobReport=True,
-                        haddFileName=args.outputFile,
-                        jsonInput=jsonFileName,
-                        maxEntries=entriesToRun,
-                        prefetch=DownloadFileToLocalThenRun,  longTermCache= True,   # prefetch: download file to local then run, longTermCache: keep the file in local after running so that if it is present use local instead of downloading again
-                        outputbranchsel="keep_and_drop_data.txt")
+        p=PostProcessor(".",testfilelist, None, None, modules = modulesToRun, provenance=True, fwkJobReport=True,haddFileName="skimmed_nano.root", jsonInput=jsonFileName, maxEntries=entriesToRun, prefetch=DownloadFileToLocalThenRun, outputbranchsel="keep_and_drop_data.txt")
 
     p.run()
 
