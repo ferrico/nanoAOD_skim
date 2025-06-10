@@ -44,3 +44,4 @@ keep Pileup*
 keep njets_pt30_eta4p7
 keep mva_*
 #keep PuppiMET*
+keep Jet*

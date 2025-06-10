@@ -6,6 +6,8 @@ import argparse
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.muonScaleResProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.eleScaleSmearingProducer import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.jetJERC import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.jetVMAP import * 
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import createJMECorrector
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
@@ -115,13 +117,18 @@ def main():
         sfFileName = "DeepCSV_102XSF_V2.csv"
         modulesToRun.extend([muonScaleRes2016()])
 
-    H4LCppModule = lambda: HZZAnalysisCppProducer(year,cfgFile, isMC, isFSR)
-    modulesToRun.extend([H4LCppModule()])
-
     print("Input json file: {}".format(jsonFileName))
     print("Input cfg file: {}".format(cfgFile))
     print("isMC: {}".format(isMC))
     print("isFSR: {}".format(isFSR))
+    print("year: {}".format(year))
+    print("first_file: {}".format(first_file))
+
+    modulesToRun.extend([getJetCorrected(year, first_file, isMC)])
+    modulesToRun.extend([getJetVetoMap(year, first_file)])
+
+    H4LCppModule = lambda: HZZAnalysisCppProducer(year,cfgFile, isMC, isFSR)
+    modulesToRun.extend([H4LCppModule()])
 
     if isMC:
         if (not args.NOsyst):
