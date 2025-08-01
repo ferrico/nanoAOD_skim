@@ -280,7 +280,6 @@ void KinZfitter::initZs(std::vector< std::vector<float> > selectedLeptons, std::
         else{
 
             if(debug_) cout<<"for fsr Z2 photon"<<endl;
-
             pTerrsZ2ph_.push_back(pTerr);
             p4sZ2ph_.push_back(p4);
             idsFsrZ2_.push_back(idsZ2_[ifsr-2]);
@@ -454,7 +453,6 @@ double KinZfitter::GetM4l()
 
 double KinZfitter::GetRefitM4l()
 {
-
     vector<TLorentzVector> p4s = GetRefitP4s();
 
     TLorentzVector pH(0,0,0,0); 
@@ -554,17 +552,33 @@ double KinZfitter::GetRefitM4lErr()
 double KinZfitter::GetRefitM4lErrFullCov()
 {
 
-
     vector<TLorentzVector> Lp4s = GetRefitP4s();
     vector<TLorentzVector> p4s;
     vector<double> pTErrs;
-
+	
+if(mass4lRECO_ <= cutoff_){
     p4s.push_back(p4sZ1REFIT_[0]);p4s.push_back(p4sZ1REFIT_[1]);
     pTErrs.push_back(pTerrsZ1REFIT_[0]); pTErrs.push_back(pTerrsZ1REFIT_[1]);
-    // patch when MINUIT FAILS
-    if(pTerrsZ1REFIT_[0]==0||pTerrsZ1REFIT_[1]==0)
+}
+else{
+    p4s.push_back(p4sZ2_[0]);p4s.push_back(p4sZ2_[1]);
+    pTErrs.push_back(pTerrsZ2_[0]); pTErrs.push_back(pTerrsZ2_[1]);
+    //p4s.push_back(p4sZ2REFIT_[0]);p4s.push_back(p4sZ2REFIT_[1]);
+    //pTErrs.push_back(pTerrsZ2REFIT_[0]); pTErrs.push_back(pTerrsZ2REFIT_[1]);
+//    if(pTerrsZ2REFIT_[0]==0||pTerrsZ2REFIT_[1]==0){
+	           return GetM4lErr();
+//    }
+}
 
+
+
+    // patch when MINUIT FAILS
+    if(pTerrsZ1REFIT_[0]==0||pTerrsZ1REFIT_[1]==0){
         return GetM4lErr();
+    }
+
+
+
 
 
     if(p4sZ1phREFIT_.size()>=1){
@@ -814,6 +828,8 @@ void KinZfitter::KinRefitZ()
 
 //cout << mass4lRECO << endl;
 
+
+
     if (mass4lRECO_ <= cutoff_) {//fit Z1
         SetFitInput(fitInput1, p4sZ1_, pTerrsZ1_, p4sZ1ph_, pTerrsZ1ph_);
 	Driver(fitInput1, fitOutput1);
@@ -828,16 +844,30 @@ void KinZfitter::KinRefitZ()
             RepairZ1Z2(p4sZ1_, pTerrsZ1_, p4sZ1ph_, pTerrsZ1ph_, p4sZ2_, pTerrsZ2_, p4sZ2ph_, pTerrsZ2ph_, idsZ1_, idsZ2_);
 
         }
-       
+
+
+	if((p4sZ1_[0]+p4sZ1_[1]).M() > (p4sZ2_[0]+p4sZ2_[1]).M()){
+		SetFitInput(fitInput1, p4sZ1_, pTerrsZ1_, p4sZ1ph_, pTerrsZ1ph_);
+        	Driver(fitInput1, fitOutput1);
+	        SetFitOutput(fitInput1, fitOutput1, l1, l2, lph1, lph2, pTerrsZ1REFIT_, pTerrsZ1phREFIT_, covMatrixZ1_);
+	}
+	else{
+		SetFitInput(fitInput1, p4sZ2_, pTerrsZ2_, p4sZ2ph_, pTerrsZ2ph_);
+		Driver(fitInput1, fitOutput1);
+		SetFitOutput(fitInput1, fitOutput1, l3, l4, lph3, lph4, pTerrsZ2REFIT_, pTerrsZ2phREFIT_, covMatrixZ2_);
+        }
+
+
+/*
         SetFitInput(fitInput1, p4sZ1_, pTerrsZ1_, p4sZ1ph_, pTerrsZ1ph_);
-        Driver(fitInput1, fitOutput1);
+	Driver(fitInput1, fitOutput1);
         SetFitOutput(fitInput1, fitOutput1, l1, l2, lph1, lph2, pTerrsZ1REFIT_, pTerrsZ1phREFIT_, covMatrixZ1_);
 
         SetFitInput(fitInput2, p4sZ2_, pTerrsZ2_, p4sZ2ph_, pTerrsZ2ph_);
         Driver(fitInput2, fitOutput2);
         SetFitOutput(fitInput2, fitOutput2, l3, l4, lph3, lph4, pTerrsZ2REFIT_, pTerrsZ2phREFIT_, covMatrixZ2_);
-
-    }
+*/
+    	}
 
     if(debug_) cout<<"l1 "<<l1<<"; l2 "<<l2<<" lph1 "<<lph1<<" lph2 "<<lph2<<endl;
     if(debug_) cout<<"l3 "<<l3<<"; l4 "<<l4<<" lph3 "<<lph3<<" lph4 "<<lph4<<endl;
@@ -845,10 +875,12 @@ void KinZfitter::KinRefitZ()
     SetZResult(l1, l2, lph1, lph2, l3, l4, lph3, lph4);
 
     if(debug_) cout<<"Z refit done"<<endl;
+
+
 }
 
 void  KinZfitter::Driver(KinZfitter::FitInput &input, KinZfitter::FitOutput &output) {
-    MakeModel(input, output);
+    	MakeModel(input, output);
 
 }
 
@@ -856,7 +888,6 @@ void  KinZfitter::Driver(KinZfitter::FitInput &input, KinZfitter::FitOutput &out
 void  KinZfitter::SetFitInput(KinZfitter::FitInput &input, 
                               vector<TLorentzVector> ZLep, vector<double> ZLepErr,
                               vector<TLorentzVector> ZGamma, vector<double> ZGammaErr) {
-
     TLorentzVector lep1 = ZLep[0]; TLorentzVector lep2 = ZLep[1];
 
     input.pTRECO1_lep = lep1.Pt(); input.pTRECO2_lep = lep2.Pt();
@@ -895,6 +926,7 @@ void  KinZfitter::SetFitInput(KinZfitter::FitInput &input,
     }
 
 //      /*if (debug_)*/ cout << "nFsr: " << input.nFsr << endl;
+
 }
 
 
@@ -1005,7 +1037,6 @@ void KinZfitter::MakeModel(/*RooWorkspace &w,*/ KinZfitter::FitInput &input, Kin
     RooFormulaVar ph1Dph2("ph1Dph2", dotProduct_4d, RooArgList(E1_gamma, E2_gamma, ph1v3Dph2)); // w.import(ph1Dph2);
 
     RooFormulaVar* mZ_2;
-
      //mZ
      if (input.nFsr == 1) {
         mZ_2 = new RooFormulaVar("mZ_2", "TMath::Sqrt(2*@0+2*@1+2*@2+@3*@3+@4*@4)", RooArgList(p1D2, p1Dph1, p2Dph1, m1, m2));
@@ -1096,6 +1127,8 @@ void KinZfitter::MakeModel(/*RooWorkspace &w,*/ KinZfitter::FitInput &input, Kin
         r = model->fitTo(*pTs,RooFit::Save(),RooFit::Constrain(mZ),RooFit::PrintLevel(-1));
 
               }
+
+
     //save fit result
     const TMatrixDSym& covMatrix = r->covarianceMatrix();
     const RooArgList& finalPars = r->floatParsFinal();
@@ -1173,7 +1206,6 @@ void  KinZfitter::RepairZ1Z2(vector<TLorentzVector> &Z1Lep, vector<double> &Z1Le
                              vector<TLorentzVector> &Z2Lep, vector<double> &Z2LepErr,
                              vector<TLorentzVector> &Z2Gamma, vector<double> &Z2GammaErr,
                              vector<int> &Z1id, vector<int> &Z2id) {
-
       typedef pair<int, TLorentzVector> Lep;
       typedef pair<Lep, Lep> Z;
       typedef pair<double, double> ZLepErr;
@@ -1217,6 +1249,7 @@ void  KinZfitter::RepairZ1Z2(vector<TLorentzVector> &Z1Lep, vector<double> &Z1Le
       Z1LepErr_cfg2 = make_pair(Z1LepErr[0], (lep1.first + lep3.first == 0) ? Z2LepErr[0] : Z2LepErr[1]);
       Z2LepErr_cfg2 = make_pair(Z1LepErr[1], (lep2.first + lep4.first == 0) ? Z2LepErr[1] : Z2LepErr[0]);
 */
+
       double massZ1_cfg1 = (Z1_cfg1.first.second + Z1_cfg1.second.second).M();
       double massZ2_cfg1 = (Z2_cfg1.first.second + Z2_cfg1.second.second).M();
       double massZ1_cfg2 = (Z1_cfg2.first.second + Z1_cfg2.second.second).M();
@@ -1249,6 +1282,7 @@ void  KinZfitter::RepairZ1Z2(vector<TLorentzVector> &Z1Lep, vector<double> &Z1Le
          Z2LepErr[1] = Z2LepErr_cfg2.second;
 
          }
+
 }
 
 

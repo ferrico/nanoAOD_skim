@@ -185,8 +185,20 @@ std::vector<unsigned int> H4LTools::SelectedJets(std::vector<unsigned int> ele, 
     std::vector<unsigned int> goodJets;
     //unsigned nJ = (*nJet).Get()[0];
     for(unsigned int i=0;i<Jet_pt.size();i++){
+	if(Jet_pt[i] < 50 && fabs(Jet_eta[i]) > 2.5 && fabs(Jet_eta[i]) < 3.0) continue; // to cure the horns
+
         if((Jet_pt[i]>JetPtcut)&&(fabs(Jet_eta[i])<JetEtacut)){
-            if((Jet_jetId[i]>0)&&((Jet_pt[i]>50)||(Jet_puId[i]==7))){
+		bool Jet_passJetIdTight = false;
+		if (fabs(Jet_eta[i]) <= 2.7) Jet_passJetIdTight = Jet_jetId[i] & (1 << 1);
+		else if (abs(Jet_eta[i]) > 2.7 && abs(Jet_eta[i]) <= 3.0) Jet_passJetIdTight = (Jet_jetId[i] & (1 << 1)) && (Jet_neHEF[i] < 0.99);
+		else if (abs(Jet_eta[i]) > 3.0) Jet_passJetIdTight = (Jet_jetId[i] & (1 << 1)) && (Jet_neEmEF[i] < 0.4);
+
+		bool Jet_passJetIdTightLepVeto = false;
+		if (abs(Jet_eta[i]) <= 2.7) Jet_passJetIdTightLepVeto = Jet_passJetIdTight && (Jet_muEF[i] < 0.8) && (Jet_chEmEF[i] < 0.8);
+		else Jet_passJetIdTightLepVeto = Jet_passJetIdTight;
+
+		if(Jet_passJetIdTightLepVeto && Jet_passJetIdTight){
+//            if((Jet_jetId[i]>0)&&((Jet_pt[i]>50)||(Jet_puId[i]==7))){
                 int overlaptag=0;
                 TLorentzVector jettest;
                 jettest.SetPtEtaPhiM(Jet_pt[i],Jet_eta[i],Jet_phi[i],Jet_mass[i]);
@@ -200,12 +212,21 @@ std::vector<unsigned int> H4LTools::SelectedJets(std::vector<unsigned int> ele, 
                     mutest.SetPtEtaPhiM(Muon_pt[mu[im]],Muon_eta[mu[im]],Muon_phi[mu[im]],Muon_mass[mu[im]]);
                     if(mutest.DeltaR(jettest)<0.4) overlaptag++;
                 }
-                if(overlaptag==0) goodJets.push_back(i);
+                if(overlaptag==0){
+                        goodJets.push_back(i);
+                        if(Jet_btagDeepFlavB[i] > JetbTagcut)
+                                nBtaggedjets_pt30_eta4p7++;
+                }
+                if(overlaptag==0){
+       				if(Jet_pt[i] > 100000)
+						std::cout<<"Jet_pt[i] = "<<Jet_pt[i]<<"\t Jet_eta[i] = "<<Jet_eta[i]<<"\t Jet_phi[i] = "<<Jet_phi[i]<<"\t Jet_puId[i] = "<<Jet_puId[i]<<std::endl;
+                }
             }
         }
     } 
     njets_pt30_eta4p7 = goodJets.size();
 //    std::cout<<"njets_pt30_eta4p7 = "<<njets_pt30_eta4p7<<std::endl;
+
     return goodJets;
 }
 
@@ -726,6 +747,13 @@ void H4LTools::LeptonSelection(){
 	lep_ptErrorVXBS.push_back(Electron_energyErr[Electronindex[ie]]);
         lep_lowEleBDT.push_back(-999);
 	lep_inTimeMuon.push_back(0);
+        lep_timeAtIpInOut.push_back(-999);
+        lep_timeAtIpInOutErr.push_back(-999);
+        lep_timeAtIpOutIn.push_back(-999);
+        lep_timeAtIpOutInErr.push_back(-999);
+        lep_inverseBeta.push_back(-999);
+        lep_inverseBetaErr.push_back(-999);
+
     }
 
     for(unsigned int ie=0; ie<LowElectronindex.size();ie++){ //lowPtInclusion ////FILIPPO
@@ -753,6 +781,12 @@ void H4LTools::LeptonSelection(){
         lep_ptErrorVXBS.push_back(LowElectron_energyErr[LowElectronindex[ie]]);
 	lep_lowEleBDT.push_back(LowElectron_ID[LowElectronindex[ie]]);
 	lep_inTimeMuon.push_back(0);
+        lep_timeAtIpInOut.push_back(-999);
+        lep_timeAtIpInOutErr.push_back(-999);
+        lep_timeAtIpOutIn.push_back(-999);
+        lep_timeAtIpOutInErr.push_back(-999);
+        lep_inverseBeta.push_back(-999);
+        lep_inverseBetaErr.push_back(-999);
     }
 
 
@@ -799,7 +833,22 @@ void H4LTools::LeptonSelection(){
 	lep_ptErrorVXBS.push_back(Muon_bsConstrainedPtErr[Muonindex[imu]]);
         lep_lowEleBDT.push_back(-999);
 	lep_inTimeMuon.push_back(Muon_inTimeMuon[Muonindex[imu]]);
-
+	//////////// -----> time information
+	lep_timeAtIpInOut.push_back(-999);
+        lep_timeAtIpInOutErr.push_back(-999);
+        lep_timeAtIpOutIn.push_back(-999);
+        lep_timeAtIpOutInErr.push_back(-999);
+        lep_inverseBeta.push_back(-999);
+        lep_inverseBetaErr.push_back(-999);
+        //////////// -----> time information
+	/*
+        lep_timeAtIpInOut.push_back(Muon_timeAtIpInOut[Muonindex[imu]]);
+        lep_timeAtIpInOutErr.push_back(Muon_timeAtIpInOutErr[Muonindex[imu]]);
+        lep_timeAtIpOutIn.push_back(Muon_timeAtIpOutIn[Muonindex[imu]]);
+        lep_timeAtIpOutInErr.push_back(Muon_timeAtIpOutInErr[Muonindex[imu]]);
+        lep_inverseBeta.push_back(Muon_inverseBeta[Muonindex[imu]]);
+        lep_inverseBetaErr.push_back(Muon_inverseBetaErr[Muonindex[imu]]);
+	*/
 	float RelIsoNoFsr;
         RelIsoNoFsr = Muon_pfRelIso03_all[Muonindex[imu]];//Muiso[imu];
 //	std::cout<<"FILIPPO RelIsoNoFsr = "<<RelIsoNoFsr<<"\t"<<imu<<std::endl;
@@ -1371,27 +1420,40 @@ void H4LTools::findZ1LCandidate(){
 }
 
 
-
-
-
-
-
-
 bool H4LTools::ZZSelection(){
+
+// 	std::cout<<"sono dentro la funzione"<<std::endl;
+// 	std::cout<<"findZCandidate = "<<findZCandidate()<<std::endl;
     
     bool foundZZCandidate = false;
     if(!findZCandidate()){
         return foundZZCandidate;
     }
 
-    if((nTightMu+nTightEle)<4){
+    if(lep_pt.size() < 4){
         return foundZZCandidate;
     } 
+    
+//     std::cout<<"nTightMu+nTightEle = "<<nTightMu+nTightEle<<std::endl;
 
-    if((abs(nTightEleChgSum)+abs(nTightMuChgSum))>(nTightMu+nTightEle-4)){
-        return foundZZCandidate;
-    }
+    if((nTightMu+nTightEle)<4){
+//     	std::cout<<"Zsize prima = "<<Zlist.size()<<std::endl;
+        if(!ZXdistributions())	
+	        return foundZZCandidate;
+	    Zsize = Zlist.size();
+    } 
+    
+//     std::cout<<"Zsize = "<<Zsize<<std::endl;
+    
+//     std::cout<<"ZXdistributions = "<<ZXdistributions()<<"\t lep_pt.size() = "<<lep_pt.size()<<"\t nTightMu = "<<nTightMu<<"\t nTightEle = "<<nTightEle<<std::endl;
+//    	std::cout<<"Zsize dopo = "<<Zlist.size()<<std::endl;
+// 
+//     if((abs(nTightEleChgSum)+abs(nTightMuChgSum))>(nTightMu+nTightEle-4)){
+//         return foundZZCandidate;
+//     }
+
     if(Zsize<2){
+// 	    std::cout<<"(Zsize<2) foundZZCandidate = "<<foundZZCandidate<<std::endl;
         return foundZZCandidate;
     }
 //            std::cout<<"3FILIPPO = "<<std::endl;
@@ -1543,6 +1605,7 @@ bool H4LTools::ZZSelection(){
         if (flag4mu) cutQCD4mu++;
     }
     if(foundZZCandidate == false){
+//  	    std::cout<<"1. foundZZCandidate = "<<foundZZCandidate<<std::endl;   
         return foundZZCandidate;
     }
 //    std::cout<<"9FILIPPO = "<<std::endl;
@@ -1652,8 +1715,8 @@ bool H4LTools::ZZSelection(){
 //		std::cout<<"jetidx.size() > 2 and loop "<<"\t"<<jetidx[0]<<"\t"<<jetidx[1]<<"\t"<<jet1index<<"\t"<<jet2index<<std::endl;
             }
         }
-	if(Jet_pt[jet1index] < Jet_pt[jet2index])
-		std::cout<<"PROBLEMA with jet pt:"<<Jet_pt[jet1index]<<"\t"<<Jet_pt[jet2index]<<std::endl;
+// 	if(Jet_pt[jet1index] < Jet_pt[jet2index])
+// 		std::cout<<"PROBLEMA with jet pt:"<<Jet_pt[jet1index]<<"\t"<<Jet_pt[jet2index]<<"\t jetidx.size() = "<<jetidx.size()<<std::endl;
     }
     TLorentzVector Jet1,Jet2;
     SimpleParticleCollection_t associated;
@@ -1704,10 +1767,18 @@ bool H4LTools::ZZSelection(){
     if ((Zflavor[Z1index]==11)&&(Zflavor[Z2index]==13)) RecoTwoETwoMuEvent=true;
     if ((Zflavor[Z1index]==13)&&(Zflavor[Z2index]==11)) RecoTwoMuTwoEEvent=true;
 //    std::cout<<"FILIPPO: "<<RecoFourMuEvent<<RecoFourEEvent<<RecoTwoETwoMuEvent<<RecoTwoMuTwoEEvent<<std::endl;
-    lep_Hindex[0] = Zlep1lepindex[Z1index];
-    lep_Hindex[1] = Zlep2lepindex[Z1index];
-    lep_Hindex[2] = Zlep1lepindex[Z2index];
-    lep_Hindex[3] = Zlep2lepindex[Z2index];
+
+	lep_Hindex[0] = Zlep1lepindex[Z1index];
+	lep_Hindex[1] = Zlep2lepindex[Z1index];
+	lep_Hindex[2] = Zlep1lepindex[Z2index];
+	lep_Hindex[3] = Zlep2lepindex[Z2index];
+	
+// 	if(ZXdistributions()){
+// 		std::cout<<lep_Hindex[0]<<"\t"<<lep_Hindex[1]<<"\t"<<lep_Hindex[2]<<"\t"<<lep_Hindex[3]<<std::endl;
+// 		std::cout<<lep_pt[lep_Hindex[0]]<<"\t"<<lep_pt[lep_Hindex[1]]<<"\t"<<lep_pt[lep_Hindex[2]]<<"\t"<<lep_pt[lep_Hindex[3]]<<std::endl;
+// 	}
+		
+
 //    std::cout<<"FILIPPO: Hindex= "<<lep_Hindex[0]<<lep_Hindex[1]<<lep_Hindex[2]<<lep_Hindex[3]<<std::endl;
     pTL1 = Lep1.Pt();
     etaL1 = Lep1.Eta();
@@ -1727,14 +1798,14 @@ bool H4LTools::ZZSelection(){
     massL4 = Lep4.M();
 
     for(int i = 0; i < 4; i++){
-	std::vector<float> tmp;
-	tmp.push_back(lepFSR_pt[lep_Hindex[i]]);
-	tmp.push_back(lepFSR_eta[lep_Hindex[i]]);
-	tmp.push_back(lepFSR_phi[lep_Hindex[i]]);
-	tmp.push_back(lepFSR_mass[lep_Hindex[i]]);
-	tmp.push_back(lep_id[lep_Hindex[i]]);
-	tmp.push_back(lep_ptError[lep_Hindex[i]]);
-	Candidate.push_back(tmp);
+		std::vector<float> tmp;
+		tmp.push_back(lepFSR_pt[lep_Hindex[i]]);
+		tmp.push_back(lepFSR_eta[lep_Hindex[i]]);
+		tmp.push_back(lepFSR_phi[lep_Hindex[i]]);
+		tmp.push_back(lepFSR_mass[lep_Hindex[i]]);
+		tmp.push_back(lep_id[lep_Hindex[i]]);
+		tmp.push_back(lep_ptError[lep_Hindex[i]]);
+		Candidate.push_back(tmp);
     }
     TLorentzVector H_VXBS;
     for(int i = 0; i < 4; i++){
@@ -1746,10 +1817,10 @@ bool H4LTools::ZZSelection(){
         tmp.push_back(lep_id[lep_Hindex[i]]);
         tmp.push_back(lep_ptError[lep_Hindex[i]]);
         Candidate_VXBS.push_back(tmp);
-	TLorentzVector lep_tmp;
-	lep_tmp.SetPtEtaPhiM(lepFSR_ptVXBS[lep_Hindex[i]], lepFSR_eta[lep_Hindex[i]], lepFSR_phi[lep_Hindex[i]], lepFSR_mass[lep_Hindex[i]]);
-	H_VXBS += lep_tmp;
-	mass4l_VXBS = H_VXBS.M();
+		TLorentzVector lep_tmp;
+		lep_tmp.SetPtEtaPhiM(lepFSR_ptVXBS[lep_Hindex[i]], lepFSR_eta[lep_Hindex[i]], lepFSR_phi[lep_Hindex[i]], lepFSR_mass[lep_Hindex[i]]);
+		H_VXBS += lep_tmp;
+		mass4l_VXBS = H_VXBS.M();
     }
   
 
@@ -1759,100 +1830,100 @@ bool H4LTools::ZZSelection(){
   	TVector3 mup_z1_tr, mum_z1_tr, mup_z2_tr, mum_z2_tr,z2_tr;
   	TVector3 n_1, n_2, n_sc, n_z;
 	n_z.SetXYZ(0,0,1);
-        if(lep_id[lep_Hindex[0]] > lep_id[lep_Hindex[1]]){
-                mup_z1.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[0]], lep_eta[lep_Hindex[0]], lep_phi[lep_Hindex[0]], lep_mass[lep_Hindex[0]]);
-                mum_z1.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[1]], lep_eta[lep_Hindex[1]], lep_phi[lep_Hindex[1]], lep_mass[lep_Hindex[1]]);
-        }
-        else{
-                mup_z1.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[1]], lep_eta[lep_Hindex[1]], lep_phi[lep_Hindex[1]], lep_mass[lep_Hindex[1]]);
-                mum_z1.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[0]], lep_eta[lep_Hindex[0]], lep_phi[lep_Hindex[0]], lep_mass[lep_Hindex[0]]);
-        }
-        if(lep_id[lep_Hindex[2]] > lep_id[lep_Hindex[3]]){
-                mup_z2.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[2]], lep_eta[lep_Hindex[2]], lep_phi[lep_Hindex[2]], lep_mass[lep_Hindex[2]]);
-                mum_z2.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[3]], lep_eta[lep_Hindex[3]], lep_phi[lep_Hindex[3]], lep_mass[lep_Hindex[3]]);
-        }
-        else{
-                mup_z2.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[3]], lep_eta[lep_Hindex[3]], lep_phi[lep_Hindex[3]], lep_mass[lep_Hindex[3]]);
-                mum_z2.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[2]], lep_eta[lep_Hindex[2]], lep_phi[lep_Hindex[2]], lep_mass[lep_Hindex[2]]);
-        }
+	if(lep_id[lep_Hindex[0]] > lep_id[lep_Hindex[1]]){
+			mup_z1.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[0]], lep_eta[lep_Hindex[0]], lep_phi[lep_Hindex[0]], lep_mass[lep_Hindex[0]]);
+			mum_z1.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[1]], lep_eta[lep_Hindex[1]], lep_phi[lep_Hindex[1]], lep_mass[lep_Hindex[1]]);
+	}
+	else{
+			mup_z1.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[1]], lep_eta[lep_Hindex[1]], lep_phi[lep_Hindex[1]], lep_mass[lep_Hindex[1]]);
+			mum_z1.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[0]], lep_eta[lep_Hindex[0]], lep_phi[lep_Hindex[0]], lep_mass[lep_Hindex[0]]);
+	}
+	if(lep_id[lep_Hindex[2]] > lep_id[lep_Hindex[3]]){
+			mup_z2.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[2]], lep_eta[lep_Hindex[2]], lep_phi[lep_Hindex[2]], lep_mass[lep_Hindex[2]]);
+			mum_z2.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[3]], lep_eta[lep_Hindex[3]], lep_phi[lep_Hindex[3]], lep_mass[lep_Hindex[3]]);
+	}
+	else{
+			mup_z2.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[3]], lep_eta[lep_Hindex[3]], lep_phi[lep_Hindex[3]], lep_mass[lep_Hindex[3]]);
+			mum_z2.SetPtEtaPhiM(lepFSR_pt[lep_Hindex[2]], lep_eta[lep_Hindex[2]], lep_phi[lep_Hindex[2]], lep_mass[lep_Hindex[2]]);
+	}
 
-        boostX=-(ZZsystem.BoostVector());
-        TLorentzVector z1_X(Z1);
+	boostX=-(ZZsystem.BoostVector());
+	TLorentzVector z1_X(Z1);
 	z1_X.Boost(boostX);
-        TVector3 z1_X_p3 = TVector3(z1_X.X(),z1_X.Y(),z1_X.Z());
-        //cout<<"z1_X_p3: "<<z1_X_p3.X()<<" "<<z1_X_p3.Y()<<" "<<z1_X_p3.Z()<<endl;
-        TLorentzVector z2_X(Z2);
-        z2_X.Boost(boostX);
-        TVector3 z2_X_p3= TVector3(z2_X.X(),z2_X.Y(),z2_X.Z());
-        //cout<<"z2_X_p3: "<<z2_X_p3.X()<<" "<<z2_X_p3.Y()<<" "<<z2_X_p3.Z()<<endl;
-        TLorentzVector mupZ1_X(mup_z1);
-        mupZ1_X.Boost(boostX);
-        TVector3 mupZ1_X_p3= TVector3(mupZ1_X.X(),mupZ1_X.Y(),mupZ1_X.Z());
-        TLorentzVector mumZ1_X(mum_z1);
-	//cout<<"mumZ1_X = "<<mumZ1_X.X()<<"\t"<<mumZ1_X.Y()<<"\t"<<mumZ1_X.Z()<<std::endl;
-        mumZ1_X.Boost(boostX);
-        TVector3 mumZ1_X_p3= TVector3(mumZ1_X.X(),mumZ1_X.Y(),mumZ1_X.Z());
-        TLorentzVector mupZ2_X(mup_z2);
-        mupZ2_X.Boost(boostX);
-        TVector3 mupZ2_X_p3= TVector3(mupZ2_X.X(),mupZ2_X.Y(),mupZ2_X.Z());
-        TLorentzVector mumZ2_X(mum_z2);
-        mumZ2_X.Boost(boostX);
-        TVector3 mumZ2_X_p3= TVector3(mumZ2_X.X(),mumZ2_X.Y(),mumZ2_X.Z());
+	TVector3 z1_X_p3 = TVector3(z1_X.X(),z1_X.Y(),z1_X.Z());
+	//cout<<"z1_X_p3: "<<z1_X_p3.X()<<" "<<z1_X_p3.Y()<<" "<<z1_X_p3.Z()<<endl;
+	TLorentzVector z2_X(Z2);
+	z2_X.Boost(boostX);
+	TVector3 z2_X_p3= TVector3(z2_X.X(),z2_X.Y(),z2_X.Z());
+	//cout<<"z2_X_p3: "<<z2_X_p3.X()<<" "<<z2_X_p3.Y()<<" "<<z2_X_p3.Z()<<endl;
+	TLorentzVector mupZ1_X(mup_z1);
+	mupZ1_X.Boost(boostX);
+	TVector3 mupZ1_X_p3= TVector3(mupZ1_X.X(),mupZ1_X.Y(),mupZ1_X.Z());
+	TLorentzVector mumZ1_X(mum_z1);
+//cout<<"mumZ1_X = "<<mumZ1_X.X()<<"\t"<<mumZ1_X.Y()<<"\t"<<mumZ1_X.Z()<<std::endl;
+	mumZ1_X.Boost(boostX);
+	TVector3 mumZ1_X_p3= TVector3(mumZ1_X.X(),mumZ1_X.Y(),mumZ1_X.Z());
+	TLorentzVector mupZ2_X(mup_z2);
+	mupZ2_X.Boost(boostX);
+	TVector3 mupZ2_X_p3= TVector3(mupZ2_X.X(),mupZ2_X.Y(),mupZ2_X.Z());
+	TLorentzVector mumZ2_X(mum_z2);
+	mumZ2_X.Boost(boostX);
+	TVector3 mumZ2_X_p3= TVector3(mumZ2_X.X(),mumZ2_X.Y(),mumZ2_X.Z());
 
-        n_1=(mumZ1_X_p3.Cross(mupZ1_X_p3)).Unit();
-	//cout<<"mumZ1_X_p3 = "<<mumZ1_X_p3.X()<<"\t"<<mumZ1_X_p3.Y()<<"\t"<<mumZ1_X_p3.Z()<<endl;
-        //cout<<"n_1 : "<<n_1.X()<<" "<<n_1.Y()<<" "<<n_1.Z()<<endl;
-        n_2=(mumZ2_X_p3.Cross(mupZ2_X_p3)).Unit();
-	//cout<<"mumZ2_X_p3 = "<<mumZ2_X_p3.X()<<"\t"<<mumZ2_X_p3.Y()<<"\t"<<mumZ2_X_p3.Z()<<endl;
-        //cout<<"n_2 : "<<n_2.X()<<" "<<n_2.Y()<<" "<<n_2.Z()<<endl;
-        n_sc=(n_z.Cross(z1_X_p3)).Unit();
-        //cout<<"n_sc : "<<n_sc.X()<<" "<<n_sc.Y()<<" "<<n_sc.Z()<<endl;
-        mva_cosTheta_star = (z1_X_p3.Unit()).Z();
-        mva_phiZZ = ((z1_X_p3.Dot(n_1.Cross(n_2)))/fabs((z1_X_p3.Dot(n_1.Cross(n_2)))))*TMath::ACos(-n_1.Dot(n_2));
-	//std::cout<<"denomZZ = "<<fabs((z1_X_p3.Dot(n_1.Cross(n_2))))<<std::endl;
-	//std::cout<<"ACos = "<<TMath::ACos(-n_1.Dot(n_2))<<std::endl;
-        mva_phi1 = ((z1_X_p3.Dot(n_1.Cross(n_sc)))/fabs(z1_X_p3.Dot(n_1.Cross(n_sc))))*TMath::ACos(n_1.Dot(n_sc));
-	//std::cout<<"denom1 = "<<fabs(z1_X_p3.Dot(n_1.Cross(n_sc)))<<std::endl;
-	//std::cout<<"ACos = "<<TMath::ACos(n_1.Dot(n_sc))<<std::endl;
-        //cout<<"phi: "<<phi<<endl;
+	n_1=(mumZ1_X_p3.Cross(mupZ1_X_p3)).Unit();
+//cout<<"mumZ1_X_p3 = "<<mumZ1_X_p3.X()<<"\t"<<mumZ1_X_p3.Y()<<"\t"<<mumZ1_X_p3.Z()<<endl;
+	//cout<<"n_1 : "<<n_1.X()<<" "<<n_1.Y()<<" "<<n_1.Z()<<endl;
+	n_2=(mumZ2_X_p3.Cross(mupZ2_X_p3)).Unit();
+//cout<<"mumZ2_X_p3 = "<<mumZ2_X_p3.X()<<"\t"<<mumZ2_X_p3.Y()<<"\t"<<mumZ2_X_p3.Z()<<endl;
+	//cout<<"n_2 : "<<n_2.X()<<" "<<n_2.Y()<<" "<<n_2.Z()<<endl;
+	n_sc=(n_z.Cross(z1_X_p3)).Unit();
+	//cout<<"n_sc : "<<n_sc.X()<<" "<<n_sc.Y()<<" "<<n_sc.Z()<<endl;
+	mva_cosTheta_star = (z1_X_p3.Unit()).Z();
+	mva_phiZZ = ((z1_X_p3.Dot(n_1.Cross(n_2)))/fabs((z1_X_p3.Dot(n_1.Cross(n_2)))))*TMath::ACos(-n_1.Dot(n_2));
+//std::cout<<"denomZZ = "<<fabs((z1_X_p3.Dot(n_1.Cross(n_2))))<<std::endl;
+//std::cout<<"ACos = "<<TMath::ACos(-n_1.Dot(n_2))<<std::endl;
+	mva_phi1 = ((z1_X_p3.Dot(n_1.Cross(n_sc)))/fabs(z1_X_p3.Dot(n_1.Cross(n_sc))))*TMath::ACos(n_1.Dot(n_sc));
+//std::cout<<"denom1 = "<<fabs(z1_X_p3.Dot(n_1.Cross(n_sc)))<<std::endl;
+//std::cout<<"ACos = "<<TMath::ACos(n_1.Dot(n_sc))<<std::endl;
+	//cout<<"phi: "<<phi<<endl;
 
-        // Z_i REST FRAME //////////////////////////////////////
-        boost_z1=-(Z1.BoostVector());
-        boost_z2=-(Z2.BoostVector());
-        //leptons in Z parent reference frame
+	// Z_i REST FRAME //////////////////////////////////////
+	boost_z1=-(Z1.BoostVector());
+	boost_z2=-(Z2.BoostVector());
+	//leptons in Z parent reference frame
 
-        TLorentzVector mupZ1_Z1(mup_z1);
-        mupZ1_Z1.Boost(boost_z1);
-        TVector3 mupZ1_Z1_p3= TVector3(mupZ1_Z1.X(),mupZ1_Z1.Y(),mupZ1_Z1.Z());
-        TLorentzVector mumZ1_Z1(mum_z1);
-        mumZ1_Z1.Boost(boost_z1);
-        TVector3 mumZ1_Z1_p3= TVector3(mumZ1_Z1.X(),mumZ1_Z1.Y(),mumZ1_Z1.Z());
+	TLorentzVector mupZ1_Z1(mup_z1);
+	mupZ1_Z1.Boost(boost_z1);
+	TVector3 mupZ1_Z1_p3= TVector3(mupZ1_Z1.X(),mupZ1_Z1.Y(),mupZ1_Z1.Z());
+	TLorentzVector mumZ1_Z1(mum_z1);
+	mumZ1_Z1.Boost(boost_z1);
+	TVector3 mumZ1_Z1_p3= TVector3(mumZ1_Z1.X(),mumZ1_Z1.Y(),mumZ1_Z1.Z());
 
-        TLorentzVector mupZ2_Z2(mup_z2);
-        mupZ2_Z2.Boost(boost_z2);
-        TVector3 mupZ2_Z2_p3= TVector3(mupZ2_Z2.X(),mupZ2_Z2.Y(),mupZ2_Z2.Z());
+	TLorentzVector mupZ2_Z2(mup_z2);
+	mupZ2_Z2.Boost(boost_z2);
+	TVector3 mupZ2_Z2_p3= TVector3(mupZ2_Z2.X(),mupZ2_Z2.Y(),mupZ2_Z2.Z());
 
-        TLorentzVector mumZ2_Z2(mum_z2);
-        mumZ2_Z2.Boost(boost_z2);
-        TVector3 mumZ2_Z2_p3= TVector3(mumZ2_Z2.X(),mumZ2_Z2.Y(),mumZ2_Z2.Z());
+	TLorentzVector mumZ2_Z2(mum_z2);
+	mumZ2_Z2.Boost(boost_z2);
+	TVector3 mumZ2_Z2_p3= TVector3(mumZ2_Z2.X(),mumZ2_Z2.Y(),mumZ2_Z2.Z());
 
-        // Z bosons in reciprocal reference frame
-        TLorentzVector z1_Z2(Z1);
-	//std::cout<<"z1_Z2 mass = "<<z1_Z2.M()<<std::endl;
-        z1_Z2.Boost(boost_z2);
-        TVector3 z1_Z2_p3= TVector3(z1_Z2.X(),z1_Z2.Y(),z1_Z2.Z());
+	// Z bosons in reciprocal reference frame
+	TLorentzVector z1_Z2(Z1);
+//std::cout<<"z1_Z2 mass = "<<z1_Z2.M()<<std::endl;
+	z1_Z2.Boost(boost_z2);
+	TVector3 z1_Z2_p3= TVector3(z1_Z2.X(),z1_Z2.Y(),z1_Z2.Z());
 
-        TLorentzVector z2_Z1(Z2);
-	//std::cout<<"z2_Z1 mass = "<<z2_Z1.M()<<std::endl;
-        z2_Z1.Boost(boost_z1);
-        TVector3 z2_Z1_p3= TVector3(z2_Z1.X(),z2_Z1.Y(),z2_Z1.Z());
+	TLorentzVector z2_Z1(Z2);
+//std::cout<<"z2_Z1 mass = "<<z2_Z1.M()<<std::endl;
+	z2_Z1.Boost(boost_z1);
+	TVector3 z2_Z1_p3= TVector3(z2_Z1.X(),z2_Z1.Y(),z2_Z1.Z());
 
-        n_1=(mumZ1_Z1_p3.Cross(mupZ1_Z1_p3)).Unit();
-        n_2=(mumZ2_Z2_p3.Cross(mupZ2_Z2_p3)).Unit();
-        n_sc=(n_z.Cross(z1_Z2_p3)).Unit();
-        //cout<<"z1_tr.Z: "<<z1_tr.Z()<<endl;
-        mva_theta1 = -(z2_Z1_p3.Unit()).Dot(mumZ1_Z1_p3.Unit());
-        mva_theta2 = -(z1_Z2_p3.Unit()).Dot(mumZ2_Z2_p3.Unit());
+	n_1=(mumZ1_Z1_p3.Cross(mupZ1_Z1_p3)).Unit();
+	n_2=(mumZ2_Z2_p3.Cross(mupZ2_Z2_p3)).Unit();
+	n_sc=(n_z.Cross(z1_Z2_p3)).Unit();
+	//cout<<"z1_tr.Z: "<<z1_tr.Z()<<endl;
+	mva_theta1 = -(z2_Z1_p3.Unit()).Dot(mumZ1_Z1_p3.Unit());
+	mva_theta2 = -(z1_Z2_p3.Unit()).Dot(mumZ2_Z2_p3.Unit());
 
 	if(jetidx.size()>2){
 		if(Jet1.Rapidity() - Jet2.Rapidity() == 0){
@@ -1883,14 +1954,15 @@ bool H4LTools::ZZSelection(){
     p0plus_VAJHU=9999.0; p_GG_SIG_ghg2_1_ghz1prime2_1E4_JHUGen=999.0; pDL1_VAJHU=999.0; pD_L1Zgint=999.0; p_GG_SIG_ghg2_1_ghza1prime2_1E4_JHUGen=999.0; p_GG_SIG_ghg2_1_ghz1_1_ghza1prime2_1E4_JHUGen=999.0, p_GG_SIG_ghg2_1_ghz1_1_ghz1prime2_1E4_JHUGen=999.0, p_GG_SIG_ghg2_1_ghz1_1_ghz2_1_JHUGen=999.0, p0plus_VAJHU=999.0; 
 
     if(RecoFourMuEvent || RecoFourEEvent || RecoTwoETwoMuEvent || RecoTwoMuTwoEEvent){
-		    int idL1 = lep_id[lep_Hindex[0]];
-		    int idL2 = lep_id[lep_Hindex[1]];
-		    int idL3 = lep_id[lep_Hindex[2]];
-		    int idL4 = lep_id[lep_Hindex[3]];
-		    float mass4l = massL4;
-		    float mass4l_vtxFSR_BS = massL4;
-		    float cosTheta1, cosTheta2, cosThetaStar, Phi, Phi1;
-		    cosTheta1=9999.0; cosTheta2=9999.0; cosThetaStar=9999.0; Phi=9999.0; Phi1=9999.0;
+
+	int idL1 = lep_id[lep_Hindex[0]];
+	int idL2 = lep_id[lep_Hindex[1]];
+	int idL3 = lep_id[lep_Hindex[2]];
+	int idL4 = lep_id[lep_Hindex[3]];
+	float mass4l = massL4;
+	float mass4l_vtxFSR_BS = massL4;
+	float cosTheta1, cosTheta2, cosThetaStar, Phi, Phi1;
+	cosTheta1=9999.0; cosTheta2=9999.0; cosThetaStar=9999.0; Phi=9999.0; Phi1=9999.0;
     float p_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal;
     float p_HadZH_S_SIG_ghz1_1_MCFM_JECNominal;
     float p_HadWH_S_SIG_ghw1_1_MCFM_JECNominal;
@@ -2283,6 +2355,25 @@ bool H4LTools::ZZSelection(){
 	D_L1Zg = me_0plus_JHU / (me_0plus_JHU + ((p_GG_SIG_ghg2_1_ghza1prime2_1E4_JHUGen/1e8) * pow(getDL1ZgsConstant(massZZ),2)));
     mela->resetInputEvent();
     */
+    if((nTightMu+nTightEle)<4){
+		foundZZCandidate = false;
+//  	    std::cout<<"(nTightMu+nTightEle) foundZZCandidate = "<<foundZZCandidate<<std::endl;   
+		return foundZZCandidate;
+    } 
+
+    if((abs(nTightEleChgSum)+abs(nTightMuChgSum))>(nTightMu+nTightEle-4)){
+		foundZZCandidate = false;
+//  	    std::cout<<"(nTightEleChgSum) foundZZCandidate = "<<foundZZCandidate<<std::endl;   
+        return foundZZCandidate;
+    }
+    
+    if(!foundZZCandidate && ZXdistributions()){
+		foundZZCandidate = false;
+// 	    std::cout<<"(ZXdistributions) foundZZCandidate = "<<foundZZCandidate<<std::endl;
+		return foundZZCandidate;
+    } 
+
+//     std::cout<<"foundZZCandidate = "<<foundZZCandidate<<std::endl;
     return foundZZCandidate;
     
 
@@ -2342,4 +2433,94 @@ std::vector<float> H4LTools::mvaEstimation(TString weight){
 
 }
 
+bool H4LTools::ZXdistributions(){
+	
+	Zlist.clear();
+	Zlep1index.clear();
+	Zlep2index.clear();
+	Zlep1lepindex.clear();
+	Zlep2lepindex.clear();
+	Zflavor.clear();
+	Zlep1pt.clear();
+	Zlep2pt.clear();
+	Zlep1eta.clear();
+	Zlep2eta.clear();
+	Zlep1phi.clear();
+	Zlep2phi.clear();
+	Zlep1mass.clear();
+	Zlep2mass.clear();
+	Zlep1ptNoFsr.clear();
+	Zlep2ptNoFsr.clear();
+	Zlep1etaNoFsr.clear();
+	Zlep2etaNoFsr.clear();
+	Zlep1phiNoFsr.clear();
+	Zlep2phiNoFsr.clear();
+	Zlep1massNoFsr.clear();
+	Zlep2massNoFsr.clear();
+	Zlep1chg.clear();
+	Zlep2chg.clear();
+
+	int Nlep = lep_pt.size();
+	
+    for(unsigned int i=0; i<Nlep; i++){
+        for(unsigned int j=i+1; j<Nlep; j++){
+            if((lep_id[i]+lep_id[j])!=0) continue;
+            TLorentzVector li, lj;
+            li.SetPtEtaPhiM(lep_pt[i],lep_eta[i],lep_phi[i],lep_mass[i]);
+            lj.SetPtEtaPhiM(lep_pt[j],lep_eta[j],lep_phi[j],lep_mass[j]);
+
+            TLorentzVector lifsr, ljfsr;
+            lifsr.SetPtEtaPhiM(lepFSR_pt[i],lepFSR_eta[i],lepFSR_phi[i],lepFSR_mass[i]);
+            ljfsr.SetPtEtaPhiM(lepFSR_pt[j],lepFSR_eta[j],lepFSR_phi[j],lepFSR_mass[j]);
+
+            TLorentzVector liljfsr = lifsr+ljfsr;
+            TLorentzVector Z, Z_noFSR;
+
+            Z = lifsr+ljfsr;
+            Z_noFSR = li+lj;
+
+            if (Z.M()>0.0) {            
+                        Zlist.push_back(Z);
+                        Zlep1index.push_back(i);
+                        Zlep2index.push_back(j);
+                        Zlep1lepindex.push_back(i);
+                        Zlep2lepindex.push_back(j);
+						Zflavor.push_back(fabs(lep_id[j]));
+                        Zlep1pt.push_back(lepFSR_pt[i]);
+                        Zlep2pt.push_back(lepFSR_pt[j]);
+                        Zlep1eta.push_back(lepFSR_eta[i]);
+                        Zlep2eta.push_back(lepFSR_eta[j]);
+                        Zlep1phi.push_back(lepFSR_phi[i]);
+                        Zlep2phi.push_back(lepFSR_phi[j]);
+                        Zlep1mass.push_back(lepFSR_mass[i]);
+                        Zlep2mass.push_back(lepFSR_mass[j]);
+                        Zlep1ptNoFsr.push_back(lep_pt[i]);
+                        Zlep2ptNoFsr.push_back(lep_pt[j]);
+                        Zlep1etaNoFsr.push_back(lep_eta[i]);
+                        Zlep2etaNoFsr.push_back(lep_eta[j]);
+                        Zlep1phiNoFsr.push_back(lep_phi[i]);
+                        Zlep2phiNoFsr.push_back(lep_phi[j]);
+                        Zlep1massNoFsr.push_back(lep_mass[i]);
+                        Zlep2massNoFsr.push_back(lep_mass[j]);
+                        if(lep_id[i] == 13 || lep_id[i] == 11)
+	                        Zlep1chg.push_back(-1);
+	                    else
+	                        Zlep1chg.push_back(1);
+                        if(lep_id[j] == 13 || lep_id[j] == 11)
+	                        Zlep2chg.push_back(-1);
+	                    else
+	                        Zlep2chg.push_back(1);
+            }
+
+        } // lep i
+    } // lep j
+    
+//     std::cout<<"ZXdistributions; Zlist.size() = "<<Zlist.size()<<std::endl;
+    
+    if(Zlist.size() > 1)
+    	return true;
+    else
+    	return false;
+   
+}
 

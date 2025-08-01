@@ -79,11 +79,11 @@ Electron:
     0.35
 Muon:
   pTcut:
-    3
+    5
   Etacut:
     2.4
   Sip3dcut:
-    8 # was 4
+    8 # was 4 for cutBased # MVA
   Loosedxycut:
     0.5
   Loosedzcut:
@@ -99,7 +99,7 @@ Muon:
   HighPtBound:
     200
   Isocut:
-    999 # was 0.35
+    999 # was 0.35for cutBased # MVA
 
 FsrPhoton:
   pTcut:
@@ -118,6 +118,12 @@ Jet:
     30
   Etacut:
     4.7
+  bTagcut: #### medium WP for 2022EE
+    0.3196 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
+    #2022:
+    #  9.9999 
+    #2022EE:
+    #  0.3196 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
 
 inputdataNPV:
   "data/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-69200ub-99bins.root"

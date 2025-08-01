@@ -69,6 +69,7 @@ def main():
     """
     first_file = testfilelist[0]
     isMC = "/data/" not in first_file
+    isMC = "ata"  not in first_file
 
     if "Summer23" in first_file or "Run2023" in first_file:
         """ 2023 run """
@@ -76,12 +77,16 @@ def main():
         cfgFile = "Input_2023.yml"
         jsonFileName = "golden_Json/Cert_Collisions2023_366442_370790_Golden.json"
         sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2023
-        if "BPix":
-#            modulesToRun.extend([muonScaleRes2023BPix()]) # FIXME: Update for year 2023
-            modulesToRun.extend([eleScaleSmear2023BPix()]) # NOT APPLIED: change it in ../../modules/common/eleScaleSmearingProducer.py
+        if "BPix" in first_file:
+            modulesToRun.extend([getMuonScaleRes(year, "", isMC, overwritePt=True)])   
+            modulesToRun.extend([getEleScaleRes(year, "", isMC, overwritePt=True, EtDependent=True)])
+            modulesToRun.extend([getJetCorrected(year, "", isMC, overwritePt=True)])
+            modulesToRun.extend([getJetVetoMap(year, "")])
         else:
-#            modulesToRun.extend([muonScaleRes2023()]) # FIXME: Update for year 2023
-            modulesToRun.extend([eleScaleSmear2023()]) # NOT APPLIED: change it in ../../modules/common/eleScaleSmearingProducer.py
+            modulesToRun.extend([getMuonScaleRes(year, "pre_BPix", isMC, overwritePt=True)]) 
+            modulesToRun.extend([getEleScaleRes(year, "pre_BPix", isMC, overwritePt=True, EtDependent=True)])
+            modulesToRun.extend([getJetCorrected(year, "pre_BPix", isMC, overwritePt=True)])
+            modulesToRun.extend([getJetVetoMap(year, "pre_BPix")])
 
     if "Summer22" in first_file or "Run2022" in first_file:
         """Summer22 and Run2022 for identification of 2022 MC and data respectiverly
@@ -90,12 +95,16 @@ def main():
         cfgFile = "Input_2022.yml"
         jsonFileName = "golden_Json/Cert_Collisions2022_355100_362760_Golden.json"
         sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2022
-        if not "EE" in first_file:
-#            modulesToRun.extend([muonScaleRes2022()]) # FIXME: Update for year 2022
-            modulesToRun.extend([eleScaleSmear2022()]) # NOT APPLIED: change it in ../../modules/common/eleScaleSmearingProducer.py
+        if "EE" in first_file:
+            modulesToRun.extend([getMuonScaleRes(year, "EE", isMC, overwritePt=True)]) 
+            modulesToRun.extend([getEleScaleRes(year, "EE", isMC, overwritePt=True, EtDependent=True)])
+            modulesToRun.extend([getJetCorrected(year, "EE", isMC, overwritePt=True)])
+            #modulesToRun.extend([getJetVetoMap(year, "EE")])
         else:
-#            modulesToRun.extend([muonScaleRes2022EE()]) # FIXME: Update for year 2022
-            modulesToRun.extend([eleScaleSmear2022EE()]) # NOT APPLIED: change it in ../../modules/common/eleScaleSmearingProducer.p#y
+            modulesToRun.extend([getMuonScaleRes(year, "", isMC, overwritePt=True)]) 
+            modulesToRun.extend([getEleScaleRes(year, "", isMC, overwritePt=True, EtDependent=True)])
+            modulesToRun.extend([getJetCorrected(year, "", isMC, overwritePt=True)])
+            modulesToRun.extend([getJetVetoMap(year, "")])
 
     if "UL18" in first_file or "UL2018" in first_file:
         """UL2018 for identification of 2018 UL data and UL18 for identification of 2018 UL MC
@@ -124,8 +133,8 @@ def main():
     print("year: {}".format(year))
     print("first_file: {}".format(first_file))
 
-    modulesToRun.extend([getJetCorrected(year, first_file, isMC)])
-    modulesToRun.extend([getJetVetoMap(year, first_file)])
+#    modulesToRun.extend([getJetCorrected(year, first_file, isMC)])
+#    modulesToRun.extend([getJetVetoMap(year, first_file)])
 
     H4LCppModule = lambda: HZZAnalysisCppProducer(year,cfgFile, isMC, isFSR)
     modulesToRun.extend([H4LCppModule()])

@@ -104,7 +104,7 @@ class HZZAnalysisCppProducer(Module):
           self.worker.InitializeMucut(cfg['Muon']['pTcut'],cfg['Muon']['Etacut'],cfg['Muon']['Sip3dcut'],cfg['Muon']['Loosedxycut'],cfg['Muon']['Loosedzcut'],cfg['Muon']['Isocut'],
                                        cfg['Muon']['Tightdxycut'],cfg['Muon']['Tightdzcut'],cfg['Muon']['TightTrackerLayercut'],cfg['Muon']['TightpTErrorcut'],cfg['Muon']['HighPtBound'])
           self.worker.InitializeFsrPhotonCut(cfg['FsrPhoton']['pTcut'],cfg['FsrPhoton']['Etacut'],cfg['FsrPhoton']['Isocut'],cfg['FsrPhoton']['dRlcut'],cfg['FsrPhoton']['dRlOverPtcut'])
-          self.worker.InitializeJetcut(cfg['Jet']['pTcut'],cfg['Jet']['Etacut'])
+          self.worker.InitializeJetcut(cfg['Jet']['pTcut'],cfg['Jet']['Etacut'],cfg['Jet']['bTagcut'])
           self.worker.InitializeEvtCut(cfg['MZ1cut'],cfg['MZZcut'],cfg['Higgscut']['down'],cfg['Higgscut']['up'],cfg['Zmass'],cfg['MZcut']['down'],cfg['MZcut']['up'])
           self.PUweightfile = cfg["outputdataNPV"]
           self.PUweighthisto = cfg["PUweightHistoName"]
@@ -182,6 +182,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("GENpT4l",  "F")
         self.out.branch("rapidity4l",  "F")
         self.out.branch("njets_pt30_eta4p7", "I")
+        self.out.branch("nBtaggedjets_pt30_eta4p7", "I")
         self.out.branch("finalState", "I")
         self.out.branch("GENnjets_pt30_eta4p7", "I")
         self.out.branch("GENrapidity4l",  "F")
@@ -297,6 +298,20 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("mva_output_WH", "F")
         self.out.branch("mva_output_qqZZ", "F")
 
+        self.out.branch("lep_timeAtIpInOut", "F", lenVar = "len(lep_pt)")
+        self.out.branch("lep_timeAtIpInOutErr", "F", lenVar = "len(lep_pt)")
+        self.out.branch("lep_timeAtIpOutIn", "F", lenVar = "len(lep_pt)")
+        self.out.branch("lep_timeAtIpOutInErr", "F", lenVar = "len(lep_pt)")
+        self.out.branch("lep_inverseBeta", "F", lenVar = "len(lep_pt)")
+        self.out.branch("lep_inverseBetaErr", "F", lenVar = "len(lep_pt)")
+
+
+
+
+
+
+
+
         with open("SyncLepton2018GGH.txt", 'w') as f:
             f.write("Sync data list:"+"\n")
 
@@ -322,6 +337,10 @@ class HZZAnalysisCppProducer(Module):
         #    self.initReaders(event._tree)
         # do NOT access other branches in python between the check/call to
         # initReaders and the call to C++ worker code
+#        if not (event.luminosityBlock == 430 and event.event == 313685):
+#        if event.luminosityBlock > 430:
+#        if not event.event == 8043:
+#            return
 #        if not(event.event== 259337 or event.event==259025 or event.event==736325):
 #        if not(event.run==356446 and event.luminosityBlock==333 and event.event==310104926):
 #            return
@@ -413,10 +432,19 @@ class HZZAnalysisCppProducer(Module):
             self.worker.SetMuons(xm.pt, xm.eta, xm.phi, xm.mass, xm.isGlobal, xm.isTracker,
                                 xm.dxy, xm.dz, xm.sip3d, xm.ptErr, xm.nTrackerLayers, xm.isPFcand,
                                 xm.pdgId, xm.charge, xm.pfRelIso03_all, xm.pfRelIso03_chg, xm.mvaLowPt, xm.nStations, xm.isStandalone, xm.bsConstrainedPt, xm.bsConstrainedPtErr, xm.inTimeMuon)
+
+##### for muon time information ---> need to add branches from miniaod
+#                                , xm.timeAtIpInOut, xm.timeAtIpInOutErr, xm.timeAtIpOutIn, xm.timeAtIpOutInErr, xm.inverseBeta, xm.inverseBetaErr)
+##### for muon time information ---> need to add branches from miniaod
+
+
+
         for xf in fsrPhotons:
             self.worker.SetFsrPhotons(xf.dROverEt2,xf.eta,xf.phi,xf.pt,xf.relIso03,xf.electronIdx,xf.muonIdx)
         for xj in jets:
-            self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, 0.8, 7)
+            #self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, 0.8, 7, xj.btagDeepFlavB)
+            self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagDeepFlavB)
+
 #        self.worker.BatchFsrRecovery_Run3()
 
         if(event.nElectron + event.nMuon < 2):
@@ -444,6 +472,9 @@ class HZZAnalysisCppProducer(Module):
 #            if not isMC:
             keepIt = False
             return keepIt
+
+#        print("event = " + str(event.run) + ":" + str(event.luminosityBlock) + ":" + str(event.event))
+
         lep_ptError = self.worker.lep_ptError
         lep_eta = self.worker.lep_eta
         lep_phi = self.worker.lep_phi
@@ -462,6 +493,13 @@ class HZZAnalysisCppProducer(Module):
         lepFSR_mass = self.worker.lepFSR_mass
         lepFSR_ptVXBS = self.worker.lepFSR_ptVXBS
         lep_inTimeMuon = self.worker.lep_inTimeMuon
+        lep_timeAtIpInOut = self.worker.lep_timeAtIpInOut
+        lep_timeAtIpInOutErr = self.worker.lep_timeAtIpInOutErr
+        lep_timeAtIpOutIn = self.worker.lep_timeAtIpOutIn
+        lep_timeAtIpOutInErr = self.worker.lep_timeAtIpOutInErr
+        lep_inverseBeta = self.worker.lep_inverseBeta
+        lep_inverseBetaErr = self.worker.lep_inverseBetaErr
+
         #if ((self.worker.nTightEle<2)&(self.worker.nTightMu<2)):
         #    pass
         if isMC:
@@ -614,14 +652,18 @@ class HZZAnalysisCppProducer(Module):
             etaL3, etaL4 = etaL4, etaL3
             phiL3, phiL4 = phiL4, phiL3
             massL3, massL4 = massL4, massL3
+
+        mass4l = self.worker.ZZsystem.M()
+        
         if passedFullSelection: 
             pT4l = self.worker.ZZsystem.Pt()
             eta4l = self.worker.ZZsystem.Eta()
             phi4l = self.worker.ZZsystem.Phi()
-            mass4l = self.worker.ZZsystem.M()
+            #mass4l = self.worker.ZZsystem.M()
             rapidity4l = self.worker.ZZsystem.Rapidity()
             mass4l_NoFsr = self.worker.ZZsystemnofsr.M()
         njets_pt30_eta4p7 = self.worker.njets_pt30_eta4p7
+        nBtaggedjets_pt30_eta4p7 = self.worker.nBtaggedjets_pt30_eta4p7
         if self.worker.flag4e:
             mass4e = mass4l
         if self.worker.flag2e2mu:
@@ -644,10 +686,15 @@ class HZZAnalysisCppProducer(Module):
         else:
             Weight = 1
 
-        if(passedFullSelection):
+        #print("len(lep_ptError) = ", len(lep_ptError))
+        if mass4l > 0 and len(lep_ptError) > 3:
+            #print("Sono qui", len(lep_ptError))
             Candidate = self.worker.Candidate
+            #print("Sono qui")
             fsrmap = self.worker.fsrmap
+            #print("Sono qui")
             self.workerKinZ.Setup(Candidate, fsrmap, self.year)
+            #print("Sono qui")
             mass4lErr = self.workerKinZ.GetM4lErr()
             self.workerKinZ.KinRefitZ()
             mass4lREFIT = self.workerKinZ.GetRefitM4l()
@@ -708,7 +755,7 @@ class HZZAnalysisCppProducer(Module):
             mva_output_VBF = -999
             mva_output_WH = -999
             mva_output_qqZZ = -999
-
+        #print("--------")
         self.out.fillBranch("mass4l",mass4l)
         self.out.fillBranch("mass4l_NoFsr", mass4l_NoFsr)
         self.out.fillBranch("mass4lErr", mass4lErr)
@@ -729,6 +776,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("rapidity4l",rapidity4l)
         self.out.fillBranch("GENrapidity4l",GENrapidity4l)
         self.out.fillBranch("njets_pt30_eta4p7",njets_pt30_eta4p7)
+        self.out.fillBranch("nBtaggedjets_pt30_eta4p7", nBtaggedjets_pt30_eta4p7)
         self.out.fillBranch("finalState",finalState)
         self.out.fillBranch("GENnjets_pt30_eta4p7",GENnjets_pt30_eta4p7)
         self.out.fillBranch("eta4l",eta4l)
@@ -844,6 +892,15 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("mva_output_VBF", mva_output_VBF)
         self.out.fillBranch("mva_output_WH", mva_output_WH)
         self.out.fillBranch("mva_output_qqZZ", mva_output_qqZZ)
+
+        self.out.fillBranch("lep_timeAtIpInOut", lep_timeAtIpInOut)
+        self.out.fillBranch("lep_timeAtIpInOutErr", lep_timeAtIpInOutErr)
+        self.out.fillBranch("lep_timeAtIpOutIn", lep_timeAtIpOutIn)
+        self.out.fillBranch("lep_timeAtIpOutInErr", lep_timeAtIpOutInErr)
+        self.out.fillBranch("lep_inverseBeta", lep_inverseBeta)
+        self.out.fillBranch("lep_inverseBetaErr", lep_inverseBetaErr)
+
+
 
         """with open("SyncLepton2018GGH.txt", 'a') as f:
             if(foundZZCandidate):
