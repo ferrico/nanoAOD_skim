@@ -234,8 +234,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("Dphijj", "F")
         self.out.branch("EvtNum",  "I")
         self.out.branch("Weight",  "F")
-        self.out.branch("pileupWeight",  "F")
-        self.out.branch("dataMCWeight_new",  "F")
+        #self.out.branch("pileupWeight",  "F")
         self.out.branch("prefiringWeight",  "F")
         self.out.branch("passedTrig",  "O")
         self.out.branch("passedFullSelection",  "O")
@@ -273,12 +272,17 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("lep_tightId","F", lenVar = "len(lep_tightId)")
         self.out.branch("lep_looseId","F", lenVar = "len(lep_looseId)")
         self.out.branch("lep_lowEleBDT","F",lenVar="len(lep_lowEleBDT)")
+        self.out.branch("lep_dataMC","F",lenVar="len(lep_dataMC)")
+        self.out.branch("lep_dataMCErr","F",lenVar="len(lep_dataMCErr)")
+        self.out.branch("lep_dataMC","F",lenVar="len(lep_dataMC)")
+        self.out.branch("lep_dataMCErr","F",lenVar="len(lep_dataMCErr)")
         self.out.branch("lepFSR_pt","F", lenVar = "len(lep_pt)")
         self.out.branch("lepFSR_eta","F", lenVar = "len(lep_eta)")
         self.out.branch("lepFSR_phi","F", lenVar = "len(lep_phi)")
         self.out.branch("lepFSR_mass","F", lenVar = "len(lep_mass)")
         self.out.branch("lepFSR_ptVXBS","F",lenVar = "len(lepFSR_ptVXBS)")    
         self.out.branch("lep_inTimeMuon","F",lenVar = "len(lep_inTimeMuon")
+        self.out.branch("dataMCWeight","F")
         self.out.branch("D_bkg_kin", "F")
         self.out.branch("D_bkg_VHdec", "F")
         self.out.branch("D_VBF1j", "F")
@@ -339,7 +343,7 @@ class HZZAnalysisCppProducer(Module):
         # initReaders and the call to C++ worker code
 #        if not (event.luminosityBlock == 430 and event.event == 313685):
 #        if event.luminosityBlock > 430:
-#        if not event.event == 8043:
+#        if not event.event == 744605:
 #            return
 #        if not(event.event== 259337 or event.event==259025 or event.event==736325):
 #        if not(event.run==356446 and event.luminosityBlock==333 and event.event==310104926):
@@ -370,7 +374,7 @@ class HZZAnalysisCppProducer(Module):
         passedFiducialSelection=False
         nZXCRFailedLeptons=0
         prefiringWeight = 1
-        dataMCWeight_new = 1
+        dataMCWeight = 1
         pileupWeight = 1
         mass4e=0
         mass2e2mu=0
@@ -424,7 +428,7 @@ class HZZAnalysisCppProducer(Module):
                 self.worker.SetElectronsGen(xe.genPartIdx)
         for xe in electrons:
             self.worker.SetElectrons(xe.pt, xe.eta, xe.phi, xe.mass, xe.dxy,
-                                xe.dz, xe.sip3d, xe.mvaHZZIso, xe.pdgId, xe.charge, xe.pfRelIso03_all, xe.uncorrected_pt, xe.energyErr)
+                                xe.dz, xe.sip3d, xe.mvaHZZIso, xe.pdgId, xe.charge, xe.pfRelIso03_all, xe.uncorrected_pt, xe.energyErr, xe.deltaEtaSC)
         for xe in lowEle:
              self.worker.SetLowElectrons(xe.pt, xe.eta, xe.phi, xe.mass, xe.dxy,
                                xe.dz, xe.ID, xe.pdgId, xe.charge, xe.miniPFRelIso_all, xe.energyErr)
@@ -477,6 +481,7 @@ class HZZAnalysisCppProducer(Module):
 
         lep_ptError = self.worker.lep_ptError
         lep_eta = self.worker.lep_eta
+        lep_etaSC = self.worker.lep_etaSC
         lep_phi = self.worker.lep_phi
         lep_mass = self.worker.lep_mass
         lep_charge = self.worker.lep_charge
@@ -588,6 +593,23 @@ class HZZAnalysisCppProducer(Module):
             if len(lep_genindex_vec)>0:
                 for i in range(len(lep_genindex_vec)):
                     lep_genindex.append(lep_genindex_vec[i])
+
+        lep_dataMC = []
+        lep_dataMCErr = []
+        for i in range(len(lep_Hindex_vec)):
+                if abs(lep_id[lep_Hindex[i]]) == 11:
+                        ETA = lep_etaSC[lep_Hindex[i]]
+                        ETA = min(ETA, 2.49999)
+                        ETA = max(ETA,-2.49999)
+                else:
+                        ETA = lep_eta[lep_Hindex[i]]
+                lep_dataMC.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[0])
+                lep_dataMCErr.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[1])
+                dataMCWeight = dataMCWeight * lep_dataMC[i]
+        #        print(str(lep_id[lep_Hindex[i]]) + "\t" + str(lep_pt[lep_Hindex[i]]) + "\t" + str(ETA))
+        #        print(str(lep_dataMC[i])+ "\t" + str(lep_dataMCErr[i]))
+        #print("---- dataMCWeight = " + str(dataMCWeight) + "number of lepton = " + str(len(lep_eta)))
+
         if (foundZZCandidate):
             self.passZZEvts += 1
         #if (foundZZCandidate |passedFiducialSelection ):
@@ -679,10 +701,10 @@ class HZZAnalysisCppProducer(Module):
         if isMC:
             if event.genWeight > 0:
                 self.mcWeight = self.mcWeight + 1
-                Weight = pileupWeight * dataMCWeight_new * prefiringWeight
+                Weight = pileupWeight * dataMCWeight * prefiringWeight
             else:
                 self.mcWeight = self.mcWeight - 1
-                Weight = -1 * pileupWeight * dataMCWeight_new * prefiringWeight
+                Weight = -1 * pileupWeight * dataMCWeight * prefiringWeight
         else:
             Weight = 1
 
@@ -831,12 +853,15 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("lep_looseId",lep_looseId)
         self.out.fillBranch("lep_RelIsoNoFSR",lep_RelIsoNoFSR)
         self.out.fillBranch("lep_lowEleBDT",lep_lowEleBDT)
+        self.out.fillBranch("lep_dataMC",lep_dataMC)
+        self.out.fillBranch("lep_dataMCErr",lep_dataMCErr)
         self.out.fillBranch("lepFSR_pt",lepFSR_pt)
         self.out.fillBranch("lepFSR_eta",lepFSR_eta)
         self.out.fillBranch("lepFSR_phi",lepFSR_phi)
         self.out.fillBranch("lepFSR_mass",lepFSR_mass)
         self.out.fillBranch("lepFSR_ptVXBS",lepFSR_ptVXBS)
         self.out.fillBranch("lep_inTimeMuon",lep_inTimeMuon)
+        self.out.fillBranch("dataMCWeight",dataMCWeight)
 
         self.out.fillBranch("mj1",mj1)
         self.out.fillBranch("pTj1",pTj1)
@@ -851,8 +876,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("phijj",phijj)
         self.out.fillBranch("Detajj",Detajj)
         self.out.fillBranch("Dphijj",Dphijj)
-        self.out.fillBranch("pileupWeight",pileupWeight)
-        self.out.fillBranch("dataMCWeight_new",dataMCWeight_new)
+        #self.out.fillBranch("pileupWeight",pileupWeight)
         self.out.fillBranch("prefiringWeight",prefiringWeight)
         self.out.fillBranch("Weight",Weight)
         # self.out.fillBranch("nElectron_Fsr", len(electrons))

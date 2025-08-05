@@ -75,7 +75,7 @@ class H4LTools {
         MZcutup = MZcutup_;
       }
       void SetElectrons(float Electron_pt_, float Electron_eta_, float Electron_phi_, float Electron_mass_, float Electron_dxy_,float Electron_dz_,
-                        float Electron_sip3d_, float Electron_mvaHZZIso_, int Electron_pdgId_, int Electron_charge_, float Electron_pfRelIso03_all_, float Electron_uncorrected_pt_, float Electron_energyErr_){
+                        float Electron_sip3d_, float Electron_mvaHZZIso_, int Electron_pdgId_, int Electron_charge_, float Electron_pfRelIso03_all_, float Electron_uncorrected_pt_, float Electron_energyErr_, float Electron_deltaEtaSC_){
         Electron_pt.push_back(Electron_pt_); 
         Electron_phi.push_back(Electron_phi_);
         Electron_eta.push_back(Electron_eta_);
@@ -89,6 +89,7 @@ class H4LTools {
         Electron_pfRelIso03_all.push_back(Electron_pfRelIso03_all_);
 	Electron_uncorrected_pt.push_back(Electron_uncorrected_pt_);
 	Electron_energyErr.push_back(Electron_energyErr_);
+	Electron_deltaEtaSC.push_back(Electron_deltaEtaSC_);
       }
 
 	void SetLowElectrons(float LowElectron_pt_, float LowElectron_eta_, float LowElectron_phi_, float LowElectron_mass_, float LowElectron_dxy_, 
@@ -239,6 +240,7 @@ class H4LTools {
       std::vector<bool> passTight_BDT_Id_LowElectron();
       std::vector<bool> passTight_Id();
       std::vector<unsigned int> goodFsrPhotons();
+      std::vector<float> leptonsWeight(int year, int id, float pt, float eta, bool isCrack);
       unsigned doFsrRecovery(TLorentzVector Lep);
       std::vector<int> doFsrRecovery_Run3(std::vector<unsigned int> goodfsridx, unsigned lepidx, int lepflavor);//lepflavor 11 or 13
 
@@ -319,6 +321,7 @@ class H4LTools {
       std::vector<float> lep_ptVXBS;
       std::vector<float> lep_ptErrorVXBS;
       std::vector<float> lep_eta;
+      std::vector<float> lep_etaSC;
       std::vector<float> lep_phi;
       std::vector<float> lep_mass;
       std::vector<float> lepFSR_pt;
@@ -381,7 +384,7 @@ class H4LTools {
         Mulist.clear();
         ElelistFsr.clear();
         MulistFsr.clear();
-        Electron_pt.clear();Electron_phi.clear();Electron_eta.clear();Electron_mass.clear();Electron_dxy.clear();Electron_dz.clear();Electron_sip3d.clear();Electron_charge.clear();
+        Electron_pt.clear();Electron_phi.clear();Electron_eta.clear();Electron_mass.clear();Electron_dxy.clear();Electron_dz.clear();Electron_sip3d.clear();Electron_charge.clear();Electron_deltaEtaSC.clear();
         Electron_mvaHZZIso.clear();Electron_pdgId.clear();Electron_genPartIdx.clear();Electron_pfRelIso03_all.clear();
 	Electron_uncorrected_pt.clear(); Electron_energyErr.clear();
 
@@ -415,6 +418,7 @@ class H4LTools {
 	lep_ptVXBS.clear();
 	lep_ptErrorVXBS.clear();
         lep_eta.clear();
+	lep_etaSC.clear();
         lep_phi.clear();
         lep_mass.clear();
         lepFSR_pt.clear();lepFSR_eta.clear(); lepFSR_phi.clear();lepFSR_mass.clear();lepFSR_ptVXBS.clear();
@@ -542,7 +546,7 @@ class H4LTools {
       //KinZfitter
       //KinZfitter *kinZfitter;
 
-      std::vector<float> Electron_pt,Electron_phi,Electron_eta,Electron_mass,Electron_dxy,Electron_dz,Electron_sip3d, Electron_charge;
+      std::vector<float> Electron_pt,Electron_phi,Electron_eta,Electron_mass,Electron_dxy,Electron_dz,Electron_sip3d, Electron_charge, Electron_deltaEtaSC;
       std::vector<float> Electron_mvaHZZIso,Electron_pfRelIso03_all;
       std::vector<int> Electron_pdgId,Electron_genPartIdx;
       std::vector<float> Electron_uncorrected_pt;

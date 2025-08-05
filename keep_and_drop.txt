@@ -32,7 +32,6 @@ keep GEN*
 keep Gen*
 keep D_*
 keep lep*
-keep *Weight
 keep *Weight*
 keep FsrPhoton*
 keep nFsrPhoton
@@ -50,3 +49,4 @@ keep nBtaggedjets_pt30_eta4p7
 keep mva_*
 #keep PuppiMET*
 keep Jet*
+keep pu*

@@ -739,6 +739,7 @@ void H4LTools::LeptonSelection(){
         lep_pt.push_back(Electron_pt[Electronindex[ie]]);
 	lep_ptError.push_back(Electron_energyErr[Electronindex[ie]]);
 	lep_eta.push_back(Electron_eta[Electronindex[ie]]);
+	lep_etaSC.push_back(Electron_eta[Electronindex[ie]] - Electron_deltaEtaSC[Electronindex[ie]]);
         lep_phi.push_back(Electron_phi[Electronindex[ie]]);
         lep_mass.push_back(Electron_mass[Electronindex[ie]]);
         lep_id.push_back(Electron_pdgId[Electronindex[ie]]);
@@ -773,6 +774,7 @@ void H4LTools::LeptonSelection(){
         lep_pt.push_back(LowElectron_pt[LowElectronindex[ie]]);
         lep_ptError.push_back(LowElectron_energyErr[LowElectronindex[ie]]);
         lep_eta.push_back(LowElectron_eta[LowElectronindex[ie]]);
+	lep_etaSC.push_back(LowElectron_eta[LowElectronindex[ie]]);
         lep_phi.push_back(LowElectron_phi[LowElectronindex[ie]]);
         lep_mass.push_back(LowElectron_mass[LowElectronindex[ie]]);
         lep_id.push_back(LowElectron_pdgId[LowElectronindex[ie]]);
@@ -825,6 +827,7 @@ void H4LTools::LeptonSelection(){
         lep_pt.push_back(Muon_pt[Muonindex[imu]]);
 	lep_ptError.push_back(Muon_ptErr[Muonindex[imu]]);
 	lep_eta.push_back(Muon_eta[Muonindex[imu]]);
+	lep_etaSC.push_back(-999);
         lep_phi.push_back(Muon_phi[Muonindex[imu]]);
         lep_mass.push_back(Muon_mass[Muonindex[imu]]);
         lep_id.push_back(Muon_pdgId[Muonindex[imu]]);
@@ -1453,10 +1456,10 @@ bool H4LTools::ZZSelection(){
 //     }
 
     if(Zsize<2){
-// 	    std::cout<<"(Zsize<2) foundZZCandidate = "<<foundZZCandidate<<std::endl;
+ 	    //std::cout<<"(Zsize<2) foundZZCandidate = "<<foundZZCandidate<<std::endl;
         return foundZZCandidate;
     }
-//            std::cout<<"3FILIPPO = "<<std::endl;
+            //std::cout<<"3FILIPPO = "<<std::endl;
    
     //Find ZZ candidate
     std::vector<int> Z1CanIndex;
@@ -1487,7 +1490,7 @@ bool H4LTools::ZZSelection(){
                 lepB.SetPtEtaPhiM(Zlep1ptNoFsr[n],Zlep1etaNoFsr[n],Zlep1phiNoFsr[n],Zlep1massNoFsr[n]);
 //                lepB.SetPtEtaPhiM(Zlep2ptNoFsr[n],Zlep2etaNoFsr[n],Zlep2phiNoFsr[n],Zlep2massNoFsr[n]);
                 lepAB = lepA + lepB;
-//		std::cout<<"FILIPPO 1m1n lepAB.M() = "<<lepAB.M()<<"\t"<<Zlep1ptNoFsr[m]<<"\t"<<Zlep1ptNoFsr[n]<<std::endl;
+		//std::cout<<"FILIPPO 1m1n lepAB.M() = "<<lepAB.M()<<"\t"<<Zlep1ptNoFsr[m]<<"\t"<<Zlep1ptNoFsr[n]<<std::endl;
 		if(lepAB.M()<4) continue;  //QCD Supressionas
             }
             if ((Zlep1chg[m]+Zlep2chg[n])==0){
@@ -1495,7 +1498,7 @@ bool H4LTools::ZZSelection(){
                 lepA.SetPtEtaPhiM(Zlep1ptNoFsr[m],Zlep1etaNoFsr[m],Zlep1phiNoFsr[m],Zlep1massNoFsr[m]);
                 lepB.SetPtEtaPhiM(Zlep2ptNoFsr[n],Zlep2etaNoFsr[n],Zlep2phiNoFsr[n],Zlep2massNoFsr[n]);
                 lepAB = lepA + lepB;
-//                std::cout<<"FILIPPO 1m2n lepAB.M() = "<<lepAB.M()<<"\t"<<Zlep1ptNoFsr[m]<<"\t"<<Zlep2ptNoFsr[n]<<std::endl;
+                //std::cout<<"FILIPPO 1m2n lepAB.M() = "<<lepAB.M()<<"\t"<<Zlep1ptNoFsr[m]<<"\t"<<Zlep2ptNoFsr[n]<<std::endl;
                 if(lepAB.M()<4) continue;
             }
             if ((Zlep2chg[m]+Zlep1chg[n])==0){
@@ -1503,7 +1506,7 @@ bool H4LTools::ZZSelection(){
                 lepA.SetPtEtaPhiM(Zlep2ptNoFsr[m],Zlep2etaNoFsr[m],Zlep2phiNoFsr[m],Zlep2massNoFsr[m]);
                 lepB.SetPtEtaPhiM(Zlep1ptNoFsr[n],Zlep1etaNoFsr[n],Zlep1phiNoFsr[n],Zlep1massNoFsr[n]);
                 lepAB = lepA + lepB;
-//                std::cout<<"FILIPPO 2m1n lepAB.M() = "<<lepAB.M()<<"\t"<<Zlep2ptNoFsr[m]<<"\t"<<Zlep1ptNoFsr[n]<<std::endl;
+                //std::cout<<"FILIPPO 2m1n lepAB.M() = "<<lepAB.M()<<"\t"<<Zlep2ptNoFsr[m]<<"\t"<<Zlep1ptNoFsr[n]<<std::endl;
                 if(lepAB.M()<4) continue;
             }
             if ((Zlep2chg[m]+Zlep2chg[n])==0){
@@ -1512,28 +1515,28 @@ bool H4LTools::ZZSelection(){
                 lepB.SetPtEtaPhiM(Zlep2ptNoFsr[n],Zlep2etaNoFsr[n],Zlep2phiNoFsr[n],Zlep2massNoFsr[n]);
 //                lepB.SetPtEtaPhiM(Zlep1ptNoFsr[n],Zlep1etaNoFsr[n],Zlep1phiNoFsr[n],Zlep1massNoFsr[n]);
                 lepAB = lepA + lepB;
-//                std::cout<<"FILIPPO 2m2n lepAB.M() = "<<lepAB.M()<<"\t"<<Zlep2ptNoFsr[m]<<"\t"<<Zlep2ptNoFsr[n]<<std::endl;
+                //std::cout<<"FILIPPO 2m2n lepAB.M() = "<<lepAB.M()<<"\t"<<Zlep2ptNoFsr[m]<<"\t"<<Zlep2ptNoFsr[n]<<std::endl;
                 if(lepAB.M()<4) continue;
             }
-//            std::cout<<"3aFILIPPO = "<<std::endl;
+            //std::cout<<"3aFILIPPO = "<<std::endl;
             QCDtag++;
             if ((Zlist[m].M()<40) && (Zlist[n].M()<40))  continue; //Z1 mass
-//           std::cout<<"3aFILIPPO = "<<std::endl;
+            //std::cout<<"3aFILIPPO = "<<std::endl;
 
             TLorentzVector zZ1,zZ2;
             if (fabs(Zlist[m].M()-Zmass)<fabs(Zlist[n].M()-Zmass)){
-//		std::cout<<"FILIPPO: m < n: Zlist[m].M() = "<<Zlist[m].M()<<"\t Zlist[n].M() = "<<Zlist[n].M()<<std::endl;
+		//std::cout<<"FILIPPO: m < n: Zlist[m].M() = "<<Zlist[m].M()<<"\t Zlist[n].M() = "<<Zlist[n].M()<<std::endl;
                 zZ1 = Zlist[m];
                 zZ2 = Zlist[n];
             }
             else{
-//                std::cout<<"FILIPPO: m > n: Zlist[m].M() = "<<Zlist[m].M()<<"\t Zlist[n].M() = "<<Zlist[n].M()<<std::endl;
+                //std::cout<<"FILIPPO: m > n: Zlist[m].M() = "<<Zlist[m].M()<<"\t Zlist[n].M() = "<<Zlist[n].M()<<std::endl;
                 zZ1 = Zlist[n];
                 zZ2 = Zlist[m];
             }    
             
             bool passSmartCut = true;
-//            std::cout<<"4FILIPPO = "<<m<<n<<std::endl;
+            //std::cout<<"4FILIPPO = "<<m<<n<<std::endl;
             if (Zflavor[m]==Zflavor[n]){
                 TLorentzVector Za,Zb,lepM1,lepM2,lepN1,lepN2;
                 int lepM1chg,lepM2chg,lepN1chg,lepN2chg;
@@ -1562,30 +1565,29 @@ bool H4LTools::ZZSelection(){
                     if ( (fabs(Zb.M()-Zmass)<fabs(zZ1.M()-Zmass)) && (Za.M()<12) ) passSmartCut=false;
                 }
             }
-//            std::cout<<"6FILIPPO = "<<m<<n<<std::endl;
+            //std::cout<<"6FILIPPO = "<<m<<n<<std::endl;
             if (passSmartCut==false) continue ;
-//            std::cout<<"7FILIPPO = "<<m<<n<<"\t"<<zZ1.M()+zZ2.M()<<"\t"<<zZ1.M()<<"\t"<<zZ2.M()<<"\t"<<(zZ1+zZ2).M()<<std::endl;
+            //std::cout<<"7FILIPPO = "<<m<<n<<"\t"<<zZ1.M()+zZ2.M()<<"\t"<<zZ1.M()<<"\t"<<zZ2.M()<<"\t"<<(zZ1+zZ2).M()<<std::endl;
             if ((zZ1+zZ2).M()<MZZcut) continue;
-//            std::cout<<"8FILIPPO = "<<m<<n<<std::endl;
+  //          std::cout<<"8FILIPPO = "<<m<<n<<std::endl;
             foundZZCandidate = true;
-//            if(Zlist[m].M()>Zlist[n].M()){
+            //if(Zlist[m].M()>Zlist[n].M()){
             if (fabs(Zlist[m].M()-Zmass)<fabs(Zlist[n].M()-Zmass)){
-//                std::cout<<"FILIPPO: m < n: Zlist[m].M() = "<<Zlist[m].M()<<"\t Zlist[n].M() = "<<Zlist[n].M()<<std::endl;
+//       	        std::cout<<"FILIPPO: m < n: Zlist[m].M() = "<<Zlist[m].M()<<"\t Zlist[n].M() = "<<Zlist[n].M()<<std::endl;
 //		std::cout<<"FILIPPO: m = "<<m<<"\t n = "<<n<<std::endl;
 		Z1CanIndex.push_back(m);
-                Z2CanIndex.push_back(n);
+       	        Z2CanIndex.push_back(n);
 //		std::cout<<"FILIPPO: Z1CanIndex[0] = "<<Z1CanIndex[0]<<"\t Z2CanIndex[0] = "<<Z2CanIndex[0]<<std::endl;
-//                std::cout<<"FILIPPO: Zlep1eta[m] = "<<Zlep1eta[m]<<"\t Zlep2eta[m] = "<<Zlep2eta[m]<<"\t Zlep1eta[n] = "<<Zlep1eta[n]<<"\t Zlep2eta[n] = "<<Zlep2eta[n]<<std::endl;
+      //          std::cout<<"FILIPPO: Zlep1eta[m] = "<<Zlep1eta[m]<<"\t Zlep2eta[m] = "<<Zlep2eta[m]<<"\t Zlep1eta[n] = "<<Zlep1eta[n]<<"\t Zlep2eta[n] = "<<Zlep2eta[n]<<std::endl;
 	    }
             else{
-//                std::cout<<"FILIPPO: m > n: Zlist[m].M() = "<<Zlist[m].M()<<"\t Zlist[n].M() = "<<Zlist[n].M()<<std::endl;
-//                std::cout<<"FILIPPO: m = "<<m<<"\t n = "<<n<<std::endl;
+    //   	        std::cout<<"FILIPPO: m > n: Zlist[m].M() = "<<Zlist[m].M()<<"\t Zlist[n].M() = "<<Zlist[n].M()<<std::endl;
+    //           	std::cout<<"FILIPPO: m = "<<m<<"\t n = "<<n<<std::endl;
                 Z1CanIndex.push_back(n);
-                Z2CanIndex.push_back(m);
-//                std::cout<<"FILIPPO: Z1CanIndex[0] = "<<Z1CanIndex[0]<<"\t Z2CanIndex[0] = "<<Z2CanIndex[0]<<std::endl;
-//                std::cout<<"FILIPPO: Zlep1eta[n] = "<<Zlep1eta[n]<<"\t Zlep2eta[n] = "<<Zlep2eta[n]<<"\t Zlep1eta[m] = "<<Zlep1eta[m]<<"\t Zlep2eta[m] = "<<Zlep2eta[m]<<std::endl;
-            }
-                    
+       	        Z2CanIndex.push_back(m);
+    //           	std::cout<<"FILIPPO: Z1CanIndex[0] = "<<Z1CanIndex[0]<<"\t Z2CanIndex[0] = "<<Z2CanIndex[0]<<std::endl;
+    //            std::cout<<"FILIPPO: Zlep1eta[n] = "<<Zlep1eta[n]<<"\t Zlep2eta[n] = "<<Zlep2eta[n]<<"\t Zlep1eta[m] = "<<Zlep1eta[m]<<"\t Zlep2eta[m] = "<<Zlep2eta[m]<<std::endl;
+	    }                    
            
         }
     }
@@ -1605,21 +1607,21 @@ bool H4LTools::ZZSelection(){
         if (flag4mu) cutQCD4mu++;
     }
     if(foundZZCandidate == false){
-//  	    std::cout<<"1. foundZZCandidate = "<<foundZZCandidate<<std::endl;   
+    //	    std::cout<<"1. foundZZCandidate = "<<foundZZCandidate<<std::endl;   
         return foundZZCandidate;
     }
-//    std::cout<<"9FILIPPO = "<<std::endl;
+    //std::cout<<"9FILIPPO = "<<foundZZCandidate<<std::endl;
     if (flag2e2mu) cutZZ2e2mu++;
     if (flag4e) cutZZ4e++;
     if (flag4mu) cutZZ4mu++;
     int Z1index,Z2index; 
     Z1index = Z1CanIndex[0];
     Z2index = Z2CanIndex[0];
-//    std::cout<<"FILIPPO: Z1CanIndex[0] = "<<Z1CanIndex[0]<<"\t Z2CanIndex[0] = "<<Z2CanIndex[0]<<std::endl;
+    //std::cout<<"FILIPPO: Z1CanIndex[0] = "<<Z1CanIndex[0]<<"\t Z2CanIndex[0] = "<<Z2CanIndex[0]<<std::endl;
     float Z2Ptsum;
     Z2Ptsum = Zlep1pt[Z2index] + Zlep2pt[Z2index];
     if(Z1CanIndex.size()>1){
-//	std::cout<<"FILIPPO: Z1CanIndex.size()>1 = "<<Z1CanIndex.size()<<std::endl;
+	//std::cout<<"FILIPPO: Z1CanIndex.size()>1 = "<<Z1CanIndex.size()<<std::endl;
         for(unsigned int iz=0;iz<Z1CanIndex.size();iz++){
             if (Z1index==Z1CanIndex[iz]){
                 if((Zlep1pt[Z2CanIndex[iz]] + Zlep2pt[Z2CanIndex[iz]])>Z2Ptsum){
@@ -1639,8 +1641,8 @@ bool H4LTools::ZZSelection(){
     
     Z1 = Zlist[Z1index];
     Z2 = Zlist[Z2index];
-//    std::cout<<"FILIPPO Z1 = "<<Z1.M()<<"\t Z2 = "<<Z2.M()<<std::endl;
-//    std::cout<<"FILIPPO: Z1index = "<<Z1index<<"\t Z2index = "<<Z2index<<std::endl;
+    //std::cout<<"FILIPPO Z1 = "<<Z1.M()<<"\t Z2 = "<<Z2.M()<<std::endl;
+    //std::cout<<"FILIPPO: Z1index = "<<Z1index<<"\t Z2index = "<<Z2index<<std::endl;
 
     Z1nofsr = Zlistnofsr[Z1index];
     Z2nofsr = Zlistnofsr[Z2index];
@@ -1772,7 +1774,14 @@ bool H4LTools::ZZSelection(){
 	lep_Hindex[1] = Zlep2lepindex[Z1index];
 	lep_Hindex[2] = Zlep1lepindex[Z2index];
 	lep_Hindex[3] = Zlep2lepindex[Z2index];
-	
+
+//	std::vector<float> tmp_lep_weight;
+//	for(int i = 0; i < 4; i++){
+//		lep_dataMC.push_back(leptonsWeight(year, int id, float pt, float eta, bool isCrack).at(0));
+//		lep_dataMCErr.push_back(leptonsWeight(year, int id, float pt, float eta, bool isCrack).at(1));
+//	}
+
+
 // 	if(ZXdistributions()){
 // 		std::cout<<lep_Hindex[0]<<"\t"<<lep_Hindex[1]<<"\t"<<lep_Hindex[2]<<"\t"<<lep_Hindex[3]<<std::endl;
 // 		std::cout<<lep_pt[lep_Hindex[0]]<<"\t"<<lep_pt[lep_Hindex[1]]<<"\t"<<lep_pt[lep_Hindex[2]]<<"\t"<<lep_pt[lep_Hindex[3]]<<std::endl;
@@ -2373,7 +2382,8 @@ bool H4LTools::ZZSelection(){
 		return foundZZCandidate;
     } 
 
-//     std::cout<<"foundZZCandidate = "<<foundZZCandidate<<std::endl;
+//    std::cout<<"foundZZCandidate = "<<foundZZCandidate<<std::endl;
+//    std::cout<<"-------------"<<std::endl;
     return foundZZCandidate;
     
 
@@ -2522,5 +2532,150 @@ bool H4LTools::ZXdistributions(){
     else
     	return false;
    
+}
+
+std::vector< float> H4LTools::leptonsWeight(int year, int id, float pt, float eta, bool isCrack){
+          TString basePath = Form("$CMSSW_BASE/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/data/");
+          TString f_eleID, f_eleID_Cracks, f_eleReco_lowPt, f_eleReco_midPt, f_eleReco_highPt; // filenames
+          TString f_mu;
+        float RecoSF = 1.0;
+        float SelSF = 1.0;
+        float SF = 1.0;
+
+        float RecoSF_Unc = 0.0;
+        float SelSF_Unc = 0.0;
+        float SFError = 0.0;
+
+	  TH2F *h_Ele_ID;
+	  TH2F *h_Ele_ID_Cracks;
+	  TH2F *h_Ele_Reco_lowPt;
+	  TH2F *h_Ele_Reco_midPt;
+	  TH2F *h_Ele_Reco_highPt;
+	  TH2D *h_Mu_SF;
+	  TH2D *h_Mu_Unc;
+
+        std::vector< float > tmp;
+
+          if (year == 20220){
+                  f_eleID           = basePath+"SF2022eleID_preEE.root";
+                  f_eleReco_highPt  = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2022preEE.root";
+                  f_eleReco_midPt   = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2022preEE.root";
+                  f_eleReco_lowPt   = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2022preEE.root";
+                  f_mu = basePath+"final_HZZ_SF_Run3_2022_mupogsysts_newLoose_abseta3_fix_BCD.root";
+          }
+          else if(year == 20225){
+                  f_eleID           = basePath+"SF2022eleID_postEE.root";
+                  f_eleReco_highPt  = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2022postEE.root";
+                  f_eleReco_midPt   = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2022postEE.root";
+                  f_eleReco_lowPt   = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2022postEE.root";
+                  f_mu = basePath+"final_HZZ_SF_Run3_2022_mupogsysts_newLoose_abseta3_fix_EFG.root";
+          }
+          else if(year == 20230){
+                  //std::cout<<"WARNING 2023 postBPix Electron ID SFs - for now using 2022postEE"<<std::endl;
+                  f_eleID          = basePath+"SF2022eleID_postEE.root";
+                  f_eleReco_highPt = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2023preBPix.root";
+                  f_eleReco_midPt  = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2023preBPix.root";
+                  f_eleReco_lowPt  = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2023preBPix.root";
+                  f_mu = basePath+"final_HZZ_SF_2023C_RMS_mupogsysts.root";
+          }
+          else if(year == 20235){
+                  //std::cout<<"WARNING 2023 postBPix Electron ID SFs - for now using 2022postEE"<<std::endl;
+                  f_eleID          = basePath+"SF2022eleID_postEE.root";
+                  f_eleReco_highPt = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2023postBPix.root";
+                  f_eleReco_midPt  = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2023postBPix.root";
+                  f_eleReco_lowPt  = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2023postBPix.root";
+                  f_mu = basePath+"final_HZZ_SF_2023D_RMS_mupogsysts.root";
+          }
+          else{
+                std::cout<<"Wrong year for SF\t"<<year<<std::endl;
+	        tmp.push_back(SF);
+        	tmp.push_back(SFError);
+		return tmp;
+          }
+	
+	if(abs(id) == 11) {
+		TFile* root_file = TFile::Open(f_eleID.Data(),"READ");
+		h_Ele_ID = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_ID");
+		h_Ele_ID->SetDirectory(nullptr); // This is required to detach the clone from the file
+		root_file->Close();
+ 
+		if (f_eleID_Cracks != "") {
+			root_file = TFile::Open(f_eleID_Cracks.Data(),"READ");
+			h_Ele_ID_Cracks = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_ID_Cracks");
+			h_Ele_ID_Cracks->SetDirectory(nullptr);
+			root_file->Close();
+		}
+		
+		root_file = TFile::Open(f_eleReco_highPt.Data(),"READ");
+		h_Ele_Reco_highPt = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_Reco_highPt");
+		h_Ele_Reco_highPt->SetDirectory(nullptr);
+		root_file->Close();
+		
+		root_file = TFile::Open(f_eleReco_lowPt.Data(),"READ");
+		h_Ele_Reco_lowPt = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_Reco_lowPt");
+		h_Ele_Reco_lowPt->SetDirectory(nullptr);
+		root_file->Close();
+		
+		if (f_eleReco_midPt != "") {
+			root_file = TFile::Open(f_eleReco_midPt.Data(),"READ");
+			h_Ele_Reco_midPt = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_Reco_midPt");
+			h_Ele_Reco_midPt->SetDirectory(nullptr);
+			root_file->Close();
+		}
+
+		if(pt < 20.) {
+			RecoSF     = h_Ele_Reco_lowPt->GetBinContent(h_Ele_Reco_lowPt->GetXaxis()->FindBin(eta),h_Ele_Reco_lowPt->GetYaxis()->FindBin(15.));// FIXME: the histogram contains 1 pt bin only
+			RecoSF_Unc = h_Ele_Reco_lowPt->GetBinError  (h_Ele_Reco_lowPt->GetXaxis()->FindBin(eta),h_Ele_Reco_lowPt->GetYaxis()->FindBin(15.));
+		}
+		else if(pt < 75. && h_Ele_Reco_midPt!= nullptr) {
+			RecoSF     = h_Ele_Reco_midPt->GetBinContent(h_Ele_Reco_midPt->GetXaxis()->FindBin(eta),h_Ele_Reco_midPt->GetYaxis()->FindBin(std::min(pt,75.f)));
+			RecoSF_Unc = h_Ele_Reco_midPt->GetBinError  (h_Ele_Reco_midPt->GetXaxis()->FindBin(eta),h_Ele_Reco_midPt->GetYaxis()->FindBin(std::min(pt,75.f)));
+		}
+		else {
+			RecoSF     = h_Ele_Reco_highPt->GetBinContent(h_Ele_Reco_highPt->GetXaxis()->FindBin(eta),h_Ele_Reco_highPt->GetYaxis()->FindBin(std::min(pt,499.f)));
+			RecoSF_Unc = h_Ele_Reco_highPt->GetBinError  (h_Ele_Reco_highPt->GetXaxis()->FindBin(eta),h_Ele_Reco_highPt->GetYaxis()->FindBin(std::min(pt,499.f)));
+		}
+	
+		// Electron HZZ selection SF
+		if (isCrack && h_Ele_ID_Cracks!=nullptr) {
+			SelSF     = h_Ele_ID_Cracks->GetBinContent(h_Ele_ID_Cracks->FindFixBin(eta, std::min(pt,499.f)));
+			SelSF_Unc = h_Ele_ID_Cracks->GetBinError  (h_Ele_ID_Cracks->FindFixBin(eta, std::min(pt,199.f)));
+		} 
+		else {
+			SelSF = h_Ele_ID->GetBinContent(h_Ele_ID->FindFixBin(eta, std::min(pt,499.f)));
+			SelSF_Unc = h_Ele_ID->GetBinError  (h_Ele_ID->FindFixBin(eta, std::min(pt,499.f)));
+		}
+		SF = RecoSF*SelSF;
+		SFError = sqrt( RecoSF_Unc*RecoSF_Unc/(RecoSF*RecoSF) + SelSF_Unc*SelSF_Unc/(SelSF*SelSF) ); // assume full correlation between different electrons (and uncorrelated reco and sel uncertainties)
+		if(pt < 7){
+                      SF = 1.0;
+                      SFError = 0.0;
+                }
+	}
+	else{
+		TFile* root_file = TFile::Open(f_mu.Data(),"READ");
+		h_Mu_SF  = (TH2D*)root_file->Get("FINAL")->Clone("h_Mu_SF");
+		h_Mu_Unc = (TH2D*)root_file->Get("ERROR")->Clone("h_Mu_Unc");
+		h_Mu_SF->SetDirectory(nullptr);
+		h_Mu_Unc->SetDirectory(nullptr);
+		root_file->Close();
+		//last bin contains the overflow
+		if(pt > 5.){
+			SelSF = h_Mu_SF->GetBinContent(h_Mu_SF->GetXaxis()->FindBin(eta),h_Mu_SF->GetYaxis()->FindBin(std::min(pt,199.f)));
+			SelSF_Unc = h_Mu_Unc->GetBinContent(h_Mu_Unc->GetXaxis()->FindBin(eta),h_Mu_Unc->GetYaxis()->FindBin(std::min(pt,199.f)));
+			SF = SelSF;
+			SFError = SelSF_Unc/SelSF; // assume full correlation between different muons (and uncorrelated reco and sel uncertainties)
+		}
+		else{
+                      SF = 1.0;
+                      SFError = 0.0;
+                }
+	}
+
+	tmp.push_back(SF);
+	tmp.push_back(SFError);
+
+	return tmp;
+
 }
 
