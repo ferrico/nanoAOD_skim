@@ -118,8 +118,10 @@ class HZZAnalysisCppProducer(Module):
         self.passZZEvts = 0
         self.cfgFile = cfgFile
         self.worker.isFSR = isFSR
-        self.workerKinZ = ROOT.KinZfitter(self.isMC, 2018)
-        self.workerKinZ_VXBS = ROOT.KinZfitter(self.isMC, 2018)
+        print(type(self.isMC), type(self.year))
+        self.workerKinZ = ROOT.KinZfitter(bool(self.isMC), int(self.year))
+        #self.workerKinZ = ROOT.KinZfitter(self.isMC, self.year)
+        self.workerKinZ_VXBS = ROOT.KinZfitter(self.isMC, self.year)
         pass
 
     def beginJob(self):
@@ -274,8 +276,6 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("lep_lowEleBDT","F",lenVar="len(lep_lowEleBDT)")
         self.out.branch("lep_dataMC","F",lenVar="len(lep_dataMC)")
         self.out.branch("lep_dataMCErr","F",lenVar="len(lep_dataMCErr)")
-        self.out.branch("lep_dataMC","F",lenVar="len(lep_dataMC)")
-        self.out.branch("lep_dataMCErr","F",lenVar="len(lep_dataMCErr)")
         self.out.branch("lepFSR_pt","F", lenVar = "len(lep_pt)")
         self.out.branch("lepFSR_eta","F", lenVar = "len(lep_eta)")
         self.out.branch("lepFSR_phi","F", lenVar = "len(lep_phi)")
@@ -399,8 +399,35 @@ class HZZAnalysisCppProducer(Module):
         eta4l = -99
         phi4l = -99
         mass4l = 0
+        mass4lErr = 999
+        mass4l_VXBS = 0
+        mass4lREFIT = 0
+        mass4lErrREFIT = 999
+        massZ1REFIT = 0
+        mass4lErr_VXBS = 999
+        mass4lREFIT_VXBS = 0
+        mass4lErrREFIT_VXBS = 999
+        massZ1REFIT_VXBS = 0
+        D_bkg_kin = -999
+        D_bkg_VHdec = -999
+        D_VBF1j = -999
+        D_HadWH = -999
+        D_HadZH = -999
+        D_VBF = -999
+        mva_Rhard = -999
+        mva_zstar= -999
+        mva_cosTheta_star = -999
+        mva_phiZZ = -999
+        mva_phi1 = -999
+        mva_theta1 = -999
+        mva_theta2 = -999
+        mva_output_ggH = -999
+        mva_output_VBF = -999
+        mva_output_WH = -999
+        mva_output_qqZZ = -999
         mass4l_NoFsr = 0
         rapidity4l = -99
+
         passedTrig = PassTrig(event, self.cfgFile)
         if (passedTrig==True):
             self.passtrigEvts += 1
@@ -427,18 +454,21 @@ class HZZAnalysisCppProducer(Module):
             for xe in electrons:
                 self.worker.SetElectronsGen(xe.genPartIdx)
         for xe in electrons:
-            self.worker.SetElectrons(xe.pt, xe.eta, xe.phi, xe.mass, xe.dxy,
-                                xe.dz, xe.sip3d, xe.mvaHZZIso, xe.pdgId, xe.charge, xe.pfRelIso03_all, xe.uncorrected_pt, xe.energyErr, xe.deltaEtaSC)
+                self.worker.SetElectrons(xe.pt, xe.eta, xe.phi, xe.mass, xe.dxy,
+                                    xe.dz, xe.sip3d, xe.mvaHZZIso, xe.pdgId, xe.charge, xe.pfRelIso03_all, xe.uncorrected_pt, xe.energyErr, xe.deltaEtaSC)
+                if 2024 == self.year:
+                    self.worker.SetElectrons_BDT_2024(xe.mvaIso_WPHZZ)
         for xe in lowEle:
              self.worker.SetLowElectrons(xe.pt, xe.eta, xe.phi, xe.mass, xe.dxy,
                                xe.dz, xe.ID, xe.pdgId, xe.charge, xe.miniPFRelIso_all, xe.energyErr)
         for xm in muons:
             self.worker.SetMuons(xm.pt, xm.eta, xm.phi, xm.mass, xm.isGlobal, xm.isTracker,
                                 xm.dxy, xm.dz, xm.sip3d, xm.ptErr, xm.nTrackerLayers, xm.isPFcand,
-                                xm.pdgId, xm.charge, xm.pfRelIso03_all, xm.pfRelIso03_chg, xm.mvaLowPt, xm.nStations, xm.isStandalone, xm.bsConstrainedPt, xm.bsConstrainedPtErr, xm.inTimeMuon)
+                                xm.pdgId, xm.charge, xm.pfRelIso03_all, xm.pfRelIso03_chg, xm.mvaLowPt, xm.nStations, xm.isStandalone, xm.bsConstrainedPt, xm.bsConstrainedPtErr, xm.inTimeMuon
+#                                )
 
 ##### for muon time information ---> need to add branches from miniaod
-#                                , xm.timeAtIpInOut, xm.timeAtIpInOutErr, xm.timeAtIpOutIn, xm.timeAtIpOutInErr, xm.inverseBeta, xm.inverseBetaErr)
+                                , xm.timeAtIpInOut, xm.timeAtIpInOutErr, xm.timeAtIpOutIn, xm.timeAtIpOutInErr, xm.inverseBeta, xm.inverseBetaErr)
 ##### for muon time information ---> need to add branches from miniaod
 
 
@@ -447,7 +477,10 @@ class HZZAnalysisCppProducer(Module):
             self.worker.SetFsrPhotons(xf.dROverEt2,xf.eta,xf.phi,xf.pt,xf.relIso03,xf.electronIdx,xf.muonIdx)
         for xj in jets:
             #self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, 0.8, 7, xj.btagDeepFlavB)
-            self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagDeepFlavB)
+            if 2024 == self.year:
+                self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass, 2, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagDeepFlavB)
+            else:
+                self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagDeepFlavB)
 
 #        self.worker.BatchFsrRecovery_Run3()
 
@@ -463,11 +496,15 @@ class HZZAnalysisCppProducer(Module):
 
 #        print("event = " + str(event.run) + ":" + str(event.luminosityBlock) + ":" + str(event.event))
 
-        self.worker.LeptonSelection()
+        self.worker.LeptonSelection(self.year)
 #        self.worker.BatchFsrRecovery_Run3()
         lep_pt = self.worker.lep_pt
 #        print("FILIPPO DOPO2" + str(event.genWeight) + "\t" + str(lep_pt.size())+ "\t" + str(self.mcWeight))
-        if(lep_pt.size() < 3):
+        min_leptons = 3;
+        if not isMC:
+            min_leptons = 2;
+    
+        if(lep_pt.size() < min_leptons):
             if isMC:
                     if event.genWeight > 0:
                             self.mcWeight = self.mcWeight + 1
@@ -517,7 +554,6 @@ class HZZAnalysisCppProducer(Module):
 
         
         passedFiducialSelection = self.genworker.passedFiducialSelection
-
 
 #        Electron_Fsr_pt_vec = self.worker.ElectronFsrPt()
 #        Electron_Fsr_eta_vec = self.worker.ElectronFsrEta()
@@ -596,16 +632,17 @@ class HZZAnalysisCppProducer(Module):
 
         lep_dataMC = []
         lep_dataMCErr = []
-        for i in range(len(lep_Hindex_vec)):
-                if abs(lep_id[lep_Hindex[i]]) == 11:
-                        ETA = lep_etaSC[lep_Hindex[i]]
-                        ETA = min(ETA, 2.49999)
-                        ETA = max(ETA,-2.49999)
-                else:
-                        ETA = lep_eta[lep_Hindex[i]]
-                lep_dataMC.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[0])
-                lep_dataMCErr.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[1])
-                dataMCWeight = dataMCWeight * lep_dataMC[i]
+        if isMC:
+            for i in range(len(lep_Hindex_vec)):
+                    if abs(lep_id[lep_Hindex[i]]) == 11:
+                            ETA = lep_etaSC[lep_Hindex[i]]
+                            ETA = min(ETA, 2.49999)
+                            ETA = max(ETA,-2.49999)
+                    else:
+                            ETA = lep_eta[lep_Hindex[i]]
+                    lep_dataMC.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[0])
+                    lep_dataMCErr.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[1])
+                    dataMCWeight = dataMCWeight * lep_dataMC[i]
         #        print(str(lep_id[lep_Hindex[i]]) + "\t" + str(lep_pt[lep_Hindex[i]]) + "\t" + str(ETA))
         #        print(str(lep_dataMC[i])+ "\t" + str(lep_dataMCErr[i]))
         #print("---- dataMCWeight = " + str(dataMCWeight) + "number of lepton = " + str(len(lep_eta)))
@@ -708,27 +745,28 @@ class HZZAnalysisCppProducer(Module):
         else:
             Weight = 1
 
-        #print("len(lep_ptError) = ", len(lep_ptError))
         if mass4l > 0 and len(lep_ptError) > 3:
-            #print("Sono qui", len(lep_ptError))
+#        if 1 > 2:
             Candidate = self.worker.Candidate
-            #print("Sono qui")
             fsrmap = self.worker.fsrmap
-            #print("Sono qui")
+            #'''
             self.workerKinZ.Setup(Candidate, fsrmap, self.year)
-            #print("Sono qui")
             mass4lErr = self.workerKinZ.GetM4lErr()
             self.workerKinZ.KinRefitZ()
             mass4lREFIT = self.workerKinZ.GetRefitM4l()
-            mass4lErrREFIT = self.workerKinZ.GetRefitM4lErrFullCov();
-            massZ1REFIT = self.workerKinZ.GetRefitMZ1();
-            mass4l_VXBS = self.worker.mass4l_VXBS;
+            mass4lErrREFIT = self.workerKinZ.GetRefitM4lErrFullCov()
+            massZ1REFIT = self.workerKinZ.GetRefitMZ1()
+            #'''
+            mass4l_VXBS = self.worker.mass4l_VXBS
+            #'''
             Candidate_VXBS = self.worker.Candidate_VXBS
             self.workerKinZ_VXBS.Setup(Candidate_VXBS, fsrmap, self.year)
             self.workerKinZ_VXBS.KinRefitZ()
-            mass4lErr_VXBS = self.workerKinZ_VXBS.GetM4lErr();
-            mass4lErrREFIT_VXBS = self.workerKinZ_VXBS.GetRefitM4lErrFullCov();
-            massZ1REFIT_VXBS = self.workerKinZ_VXBS.GetRefitMZ1();
+            mass4lErr_VXBS = self.workerKinZ_VXBS.GetM4lErr()
+            mass4lErrREFIT_VXBS = self.workerKinZ_VXBS.GetRefitM4lErrFullCov()
+            mass4lREFIT_VXBS = self.workerKinZ_VXBS.GetRefitM4l()
+            massZ1REFIT_VXBS = self.workerKinZ_VXBS.GetRefitMZ1()
+            #'''
             D_bkg_kin = self.worker.D_bkg_kin;
             D_bkg_VHdec = self.worker.D_bkg_VHdec;
             D_VBF1j = self.worker.D_VBF1j
@@ -745,11 +783,11 @@ class HZZAnalysisCppProducer(Module):
             mva_theta2 = self.worker.mva_theta2
 
             mva_output = []
-            mva_output = self.worker.mvaEstimation("/afs/cern.ch/work/f/ferrico/private/HZZ_Run3_LXP9/CMSSW_14_0_2/src/tmva/dataset/weights/TMVAMulticlass_BDTG.weights.xml")
-            mva_output_ggH = mva_output[0]
-            mva_output_VBF = mva_output[1]
-            mva_output_WH = mva_output[2]
-            mva_output_qqZZ = mva_output[3]
+            #mva_output = self.worker.mvaEstimation("/afs/cern.ch/work/f/ferrico/private/HZZ_Run3_LXP9/CMSSW_14_0_2/src/tmva/dataset/weights/TMVAMulticlass_BDTG.weights.xml")
+            #mva_output_ggH = mva_output[0]
+            #mva_output_VBF = mva_output[1]
+            #mva_output_WH = mva_output[2]
+            #mva_output_qqZZ = mva_output[3]
         else:
             mass4lErr = -999
             mass4lREFIT = -999
@@ -781,14 +819,14 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("mass4l",mass4l)
         self.out.fillBranch("mass4l_NoFsr", mass4l_NoFsr)
         self.out.fillBranch("mass4lErr", mass4lErr)
-        #self.out.fillBranch("mass4lREFIT", mass4lREFIT)
-        #self.out.fillBranch("mass4lErrREFIT", mass4lErrREFIT)
-        #self.out.fillBranch("massZ1REFIT", massZ1REFIT)
+        self.out.fillBranch("mass4lREFIT", mass4lREFIT)
+        self.out.fillBranch("mass4lErrREFIT", mass4lErrREFIT)
+        self.out.fillBranch("massZ1REFIT", massZ1REFIT)
         self.out.fillBranch("mass4l_VXBS", mass4l_VXBS)
         self.out.fillBranch("mass4lErr_VXBS", mass4lErr_VXBS)
-        #self.out.fillBranch("mass4lREFIT_VXBS", mass4lREFIT_VXBS)
-        #self.out.fillBranch("mass4lErrREFIT_VXBS", mass4lErrREFIT_VXBS)
-        #self.out.fillBranch("massZ1REFIT_VXBS", massZ1REFIT_VXBS)
+        self.out.fillBranch("mass4lREFIT_VXBS", mass4lREFIT_VXBS)
+        self.out.fillBranch("mass4lErrREFIT_VXBS", mass4lErrREFIT_VXBS)
+        self.out.fillBranch("massZ1REFIT_VXBS", massZ1REFIT_VXBS)
         self.out.fillBranch("GENmass4l",GENmass4l)
         self.out.fillBranch("mass4e",mass4e)
         self.out.fillBranch("mass2e2mu",mass2e2mu)

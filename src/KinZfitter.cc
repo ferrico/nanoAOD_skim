@@ -30,7 +30,7 @@ KinZfitter::KinZfitter(bool isData, int year)
      /// Initialise HelperFunction
      helperFunc_ = new HelperFunction(year, isData);
      isCorrPTerr_ = true; 
-     isData_ = isData; 
+     isData_ = isData;
 
 }
 
@@ -69,9 +69,9 @@ void KinZfitter::Setup(std::vector< std::vector< float > > selectedLeptons, std:
 	cout<<"fs is "<<fs_<<endl;
 
     /////////////
-    edm::FileInPath pdfFileWithFullPath("/afs/cern.ch/work/f/ferrico/private/HZZ_Run3_LXP9/CMSSW_14_0_2/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/KinZfitter/KinZfitter/ParamZ1/dummy.txt");
-    string paramZ1_dummy = pdfFileWithFullPath.fullPath(); 
-    
+    edm::FileInPath pdfFileWithFullPath("/afs/cern.ch/work/f/ferrico/private/hzz_run3/CMSSW_14_0_2/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/Z1Refit_Param/dummy.txt");
+    string paramZ1_dummy = pdfFileWithFullPath.fullPath();
+
     TString paramZ1 = TString( paramZ1_dummy.substr(0,paramZ1_dummy.length() - 9));
 
     paramZ1+=PDFName_;
@@ -80,7 +80,6 @@ void KinZfitter::Setup(std::vector< std::vector< float > > selectedLeptons, std:
     paramZ1+="_Run3.txt";
 
     if(debug_) cout<<"paramZ1 in "<<paramZ1<<endl;
-//    cout<<"paramZ1 in "<<paramZ1<<endl;
 
     std::ifstream input(paramZ1);
     std::string line;
@@ -159,7 +158,7 @@ void KinZfitter::Setup(std::vector<TLorentzVector> VtxLep, std::vector<double> l
     if(debug_) cout<<"fs is "<<fs_<<endl;
 
     /////////////
-    edm::FileInPath pdfFileWithFullPath("/afs/cern.ch/work/f/ferrico/private/HZZ_Run3_LXP9/CMSSW_14_0_2/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/KinZfitter/KinZfitter/ParamZ1/dummy.txt");     
+    edm::FileInPath pdfFileWithFullPath("/afs/cern.ch/work/f/ferrico/private/hzz_run3/CMSSW_14_0_2/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/Z1Refit_Param/dummy.txt");
     string paramZ1_dummy = pdfFileWithFullPath.fullPath(); 
     
     TString paramZ1 = TString( paramZ1_dummy.substr(0,paramZ1_dummy.length() - 9));
@@ -167,11 +166,11 @@ void KinZfitter::Setup(std::vector<TLorentzVector> VtxLep, std::vector<double> l
     paramZ1+=PDFName_;
     paramZ1+="_";
     paramZ1+=+fs_;
-    paramZ1+=".txt";
+    paramZ1+="_Run3.txt";
 
     if(debug_) 
 	cout<<"paramZ1 in "<<paramZ1<<endl;
-	
+
     std::ifstream input(paramZ1);
     std::string line;
     while (!input.eof() && std::getline(input,line))
@@ -561,7 +560,7 @@ if(mass4lRECO_ <= cutoff_){
     pTErrs.push_back(pTerrsZ1REFIT_[0]); pTErrs.push_back(pTerrsZ1REFIT_[1]);
 }
 else{
-    p4s.push_back(p4sZ2_[0]);p4s.push_back(p4sZ2_[1]);
+   	p4s.push_back(p4sZ2_[0]);p4s.push_back(p4sZ2_[1]);
     pTErrs.push_back(pTerrsZ2_[0]); pTErrs.push_back(pTerrsZ2_[1]);
     //p4s.push_back(p4sZ2REFIT_[0]);p4s.push_back(p4sZ2REFIT_[1]);
     //pTErrs.push_back(pTerrsZ2REFIT_[0]); pTErrs.push_back(pTerrsZ2REFIT_[1]);
@@ -661,6 +660,7 @@ else{
     double delta12 = error1*error2*covMatrixZ1_(0,1)/sqrt(covMatrixZ1_(0,0)*covMatrixZ1_(1,1));
     double delta34=0.0;
     if (mass4lRECO_ > cutoff_) {
+
         delta34 = error3*error4*covMatrixZ2_(0,1)/sqrt(covMatrixZ2_(0,0)*covMatrixZ2_(1,1));
     }
     if (debug_) cout<<"delta34 "<<delta34<<endl;
@@ -839,6 +839,7 @@ void KinZfitter::KinRefitZ()
 
     }
     else {//fit two Zs
+
         if (fourEfourMu) {//4e,4mu, do reshuffle
 
             RepairZ1Z2(p4sZ1_, pTerrsZ1_, p4sZ1ph_, pTerrsZ1ph_, p4sZ2_, pTerrsZ2_, p4sZ2ph_, pTerrsZ2ph_, idsZ1_, idsZ2_);

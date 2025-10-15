@@ -92,6 +92,10 @@ class H4LTools {
 	Electron_deltaEtaSC.push_back(Electron_deltaEtaSC_);
       }
 
+      void SetElectrons_BDT_2024(bool Electron_mvaIso_WPHZZ_){
+	     Electron_mvaIso_WPHZZ.push_back(Electron_mvaIso_WPHZZ_);
+      }
+
 	void SetLowElectrons(float LowElectron_pt_, float LowElectron_eta_, float LowElectron_phi_, float LowElectron_mass_, float LowElectron_dxy_, 
 		float LowElectron_dz_, float LowElectron_ID_, int LowElectron_pdgId_, int LowElectron_charge_, float LowElectron_miniPFRelIso_all_, float LowElectron_energyErr_){
 
@@ -132,7 +136,7 @@ class H4LTools {
                         float Muon_dxy_, float Muon_dz_,float Muon_sip3d_, float Muon_ptErr_,
 			int Muon_nTrackerLayers_, bool Muon_isPFcand_, int Muon_pdgId_,int Muon_charge_, float Muon_pfRelIso03_all_, float Muon_pfRelIso03_chg_, float Muon_mva_, Int_t Muon_nStations_, bool Muon_isStandalone_, float Muon_bsConstrainedPt_, float Muon_bsConstrainedPtErr_, bool Muon_inTimeMuon_
 //##### for muon time information ---> need to add branches from miniaod
-//			, float Muon_timeAtIpInOut_, float Muon_timeAtIpInOutErr_, float Muon_timeAtIpOutIn_, float Muon_timeAtIpOutInErr_, float Muon_inverseBeta_, float Muon_inverseBetaErr_
+			, float Muon_timeAtIpInOut_, float Muon_timeAtIpInOutErr_, float Muon_timeAtIpOutIn_, float Muon_timeAtIpOutInErr_, float Muon_inverseBeta_, float Muon_inverseBetaErr_
 //##### for muon time information ---> need to add branches from miniaod
 		   ){
         Muon_pt.push_back(Muon_pt_); 
@@ -157,14 +161,14 @@ class H4LTools {
 	Muon_bsConstrainedPt.push_back(Muon_bsConstrainedPt_);
 	Muon_bsConstrainedPtErr.push_back(Muon_bsConstrainedPtErr_);
 	Muon_inTimeMuon.push_back(Muon_inTimeMuon_);
-/*
+///*
         Muon_timeAtIpInOut.push_back(Muon_timeAtIpInOut_);
         Muon_timeAtIpInOutErr.push_back(Muon_timeAtIpInOutErr_);
         Muon_timeAtIpOutIn.push_back(Muon_timeAtIpOutIn_);
         Muon_timeAtIpOutInErr.push_back(Muon_timeAtIpOutInErr_);
         Muon_inverseBeta.push_back(Muon_inverseBeta_);
         Muon_inverseBetaErr.push_back(Muon_inverseBetaErr_);
-*/
+//*/
       }
       void SetMuonsGen(int Muon_genPartIdx_){
         Muon_genPartIdx.push_back(Muon_genPartIdx_);
@@ -236,7 +240,7 @@ class H4LTools {
       std::vector<unsigned int> goodMuons2015_noIso_noPf(std::vector<unsigned int> Muonindex);
       std::vector<unsigned int> goodElectrons2015_noIso_noBdt(std::vector<unsigned int> Electronindex);
       std::vector<unsigned int> goodLowElectrons2015_noIso_noBdt(std::vector<unsigned int> Electronindex);
-      std::vector<bool> passTight_BDT_Id();
+      std::vector<bool> passTight_BDT_Id(int year);
       std::vector<bool> passTight_BDT_Id_LowElectron();
       std::vector<bool> passTight_Id();
       std::vector<unsigned int> goodFsrPhotons();
@@ -300,7 +304,7 @@ class H4LTools {
       bool flag4mu;
       bool flag2e2mu;
 
-      void LeptonSelection();
+      void LeptonSelection(int year);
       void findZ1LCandidate();
       std::vector<unsigned int> looseEle,looseLowEle,looseMu,bestEle,bestLowEle,bestMu, tighteleforjetidx, tightmuforjetidx;
       std::vector<unsigned int> Electronindex;
@@ -386,7 +390,7 @@ class H4LTools {
         MulistFsr.clear();
         Electron_pt.clear();Electron_phi.clear();Electron_eta.clear();Electron_mass.clear();Electron_dxy.clear();Electron_dz.clear();Electron_sip3d.clear();Electron_charge.clear();Electron_deltaEtaSC.clear();
         Electron_mvaHZZIso.clear();Electron_pdgId.clear();Electron_genPartIdx.clear();Electron_pfRelIso03_all.clear();
-	Electron_uncorrected_pt.clear(); Electron_energyErr.clear();
+	Electron_uncorrected_pt.clear(); Electron_energyErr.clear();Electron_mvaIso_WPHZZ.clear();
 
 	LowElectron_pt.clear(); LowElectron_eta.clear(); LowElectron_phi.clear();	LowElectron_mass.clear();
 	LowElectron_dxy.clear(); LowElectron_dz.clear(); LowElectron_ID.clear(); LowElectron_miniPFRelIso_all.clear();
@@ -551,6 +555,7 @@ class H4LTools {
       std::vector<int> Electron_pdgId,Electron_genPartIdx;
       std::vector<float> Electron_uncorrected_pt;
       std::vector<float> Electron_energyErr;
+      std::vector<bool> Electron_mvaIso_WPHZZ;
 
       std::vector<float> LowElectron_pt, LowElectron_eta, LowElectron_phi, LowElectron_mass;
       std::vector<float> LowElectron_dxy, LowElectron_dz, LowElectron_ID, LowElectron_miniPFRelIso_all;

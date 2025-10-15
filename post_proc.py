@@ -31,8 +31,7 @@ def parse_arguments():
 def getListFromFile(filename):
     """Read file list from a text file."""
     with open(filename, "r") as file:
-        return ["root://cms-xrd-global.cern.ch/" + line.strip() for line in file]
-
+            return ["root://cms-xrd-global.cern.ch/" + line.strip() for line in file]
 
 def main():
     args = parse_arguments()
@@ -71,6 +70,17 @@ def main():
     first_file = testfilelist[0]
     isMC = "/data/" not in first_file
     isMC = "ata"  not in first_file
+
+    if "Summer24" in first_file or "Run2024" in first_file:
+        year = 2024
+        jsonFileName = "golden_Json/Cert_Collisions2024_378981_386951_Golden.json"
+        sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2024
+        year_tag = 2024
+        cfgFile = "Input_2024.yml"
+        modulesToRun.extend([getMuonScaleRes(year, "BPix", isMC, overwritePt=True)])   
+        modulesToRun.extend([getEleScaleRes(2023, 20235, isMC, overwritePt=True, EtDependent=True)])
+        #modulesToRun.extend([getJetCorrected(2023, "BPix", isMC, overwritePt=True)])
+        #modulesToRun.extend([getJetVetoMap(2023, "BPix")])
 
     if "Summer23" in first_file or "Run2023" in first_file:
         """ 2023 run """
@@ -134,13 +144,13 @@ def main():
     modulesToRun.extend([H4LCppModule()])
 
     if isMC:
-        if (not args.NOsyst):
+        #if (not args.NOsyst):
             # FIXME: JES not used properly
             #jetmetCorrector = createJMECorrector(isMC=isMC, dataYear=year, jesUncert="All", jetType = "AK4PFchs")
             #fatJetCorrector = createJMECorrector(isMC=isMC, dataYear=year, jesUncert="All", jetType = "AK8PFPuppi")
             # btagSF = lambda: btagSFProducer("UL"+str(year), algo="deepjet",selectedWPs=['L','M','T','shape_corr'], sfFileName=sfFileName)
-            btagSF = lambda: btagSFProducer(era = "UL"+str(year), algo = "deepcsv")
-            puidSF = lambda: JetSFMaker("%s" % year)
+            #btagSF = lambda: btagSFProducer(era = "UL"+str(year), algo = "deepcsv")
+            #puidSF = lambda: JetSFMaker("%s" % year)
             #modulesToRun.extend([jetmetCorrector(), fatJetCorrector()])#, puidSF()
             # # modulesToRun.extend([jetmetCorrector(), fatJetCorrector(), btagSF(), puidSF()])
         if year == 2022:
@@ -153,6 +163,8 @@ def main():
                 modulesToRun.extend([puWeight(2023, "")])
             else:
                 modulesToRun.extend([puWeight(2023, "pre_BPix")])
+        #if year == 2024:
+        #        modulesToRun.extend([puWeight(2024, "")]) ----> aggiorna in Input_2024 i root file
 
         # INFO: Keep the `fwkJobReport=False` to trigger `haddnano.py`
         #            otherwise the output file will have larger size then expected. Reference: https://github.com/cms-nanoAOD/nanoAOD-tools/issues/249

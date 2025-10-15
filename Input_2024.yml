@@ -79,12 +79,11 @@ Electron:
     0.35
 Muon:
   pTcut:
-    5
+    3
   Etacut:
     2.4
   Sip3dcut:
-    #4 # was 8 for mvaBased # MVA
-    8 # was 4 for cutBased # MVA
+    8 # was 4
   Loosedxycut:
     0.5
   Loosedzcut:
@@ -100,8 +99,7 @@ Muon:
   HighPtBound:
     200
   Isocut:
-    #999 # was 0.35 for cutBased # MVA
-    0.35 # was 999 for mvaBased # MVA
+    999 # was 0.35
 
 FsrPhoton:
   pTcut:
@@ -120,15 +118,15 @@ Jet:
     30
   Etacut:
     4.7
-  bTagcut: #### medium WP for 2022EE deepJet
-    0.3196 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
+  bTagcut: #### medium WP for 2023 BPix deepJet
+    0.2435 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
 
 inputdataNPV:
-  "data/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-69200ub-99bins.root"
+  "data/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-69200ub-99bins.root"
 inputdataNPVup:
-  "data/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-72400ub-99bins.root"
+  "data/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-72400ub-99bins.root"
 inputdataNPVdown:
-  "data/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-66000ub-99bins.root"
+  "data/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-66000ub-99bins.root"
 
 outputdataNPV:
   "data/pileupHistogram_2022.root"

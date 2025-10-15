@@ -80,13 +80,14 @@ HelperFunction::HelperFunction(int year, bool isData)
         //TString s_corr_mu = TString(edm::FileInPath ("KinZfitter/HelperFunction/hists/FullRunII/madgraph/" + (TString)year + "/LUT_m2mu.root" ).fullPath());
 
         TString directory_name;
-        if(!isData)
-            directory_name = "/afs/cern.ch/work/f/ferrico/private/HZZ_Run3_LXP9/CMSSW_14_0_2/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/KinZfitter/HelperFunction/hists/FullRunII/VX_BS_Production_10_2_18/";
-            //directory_name = "KinZfitter/HelperFunction/hists/FullRunII/Base_Production_10_2_18/";
-        else
-            directory_name = "/afs/cern.ch/work/f/ferrico/private/HZZ_Run3_LXP9/CMSSW_14_0_2/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/KinZfitter/HelperFunction/hists/FullRunII/Data/";
-        directory_name = Form("%s%d/", directory_name.Data(), year);
-        /*
+//        if(!isData)
+//            directory_name = "/afs/cern.ch/work/f/ferrico/private/hzz_run3/CMSSW_14_0_2/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/UL_Lambda/DATA_VXBS/";
+//        else
+            directory_name = "/afs/cern.ch/work/f/ferrico/private/hzz_run3/CMSSW_14_0_2/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/UL_Lambda/MC_VXBS_Marzo2023/";
+        //directory_name = Form("%s/%d/", directory_name.Data(), year);
+	directory_name = Form("%s/2018/", directory_name.Data());
+
+	/*
         if(year == 2016)
             directory_name = "KinZfitter/HelperFunction/hists/FullRunII/madgraph/2016/";
         else if(year == 2017)
@@ -109,7 +110,9 @@ HelperFunction::HelperFunction(int year, bool isData)
         TString s_corr_e_3 = TString(edm::FileInPath (directory_name + "LUT_2e_3.root").fullPath());
         TString s_corr_mu = TString(edm::FileInPath (directory_name + "LUT_2mu.root" ).fullPath());
 
-        f_corr_e_1 = boost::shared_ptr<TFile>( new TFile(s_corr_e_1)); 
+
+
+        f_corr_e_1 = boost::shared_ptr<TFile>( new TFile(s_corr_e_1));
         f_corr_e_2 = boost::shared_ptr<TFile>( new TFile(s_corr_e_2)); 
         f_corr_e_3 = boost::shared_ptr<TFile>( new TFile(s_corr_e_3)); 
         f_corr_mu = boost::shared_ptr<TFile>( new TFile(s_corr_mu));
@@ -117,7 +120,7 @@ HelperFunction::HelperFunction(int year, bool isData)
         el_corr_1 = boost::shared_ptr<TH2F>(  (static_cast<TH2F*>(f_corr_e_1->Get("e1")->Clone() )) );
         el_corr_2 = boost::shared_ptr<TH2F>(  (static_cast<TH2F*>(f_corr_e_2->Get("e1")->Clone() )) );
         el_corr_3 = boost::shared_ptr<TH2F>(  (static_cast<TH2F*>(f_corr_e_3->Get("e3")->Clone() )) );
-        mu_corr = boost::shared_ptr<TH2F>(  (static_cast<TH2F*>(f_corr_mu->Get("2mu")->Clone() )) );
+        mu_corr = boost::shared_ptr<TH2F>(  (static_cast<TH2F*>(f_corr_mu->Get("ebe_mu")->Clone() )) );
         
         x_eletaaxis_1 = el_corr_1->GetXaxis(); y_elpTErrOverpTaxis_1 = el_corr_1->GetYaxis();
         maxPtErrOverPtEl_1 = y_elpTErrOverpTaxis_1->GetXmax(); minPtErrOverPtEl_1 = y_elpTErrOverpTaxis_1->GetXmin();
@@ -130,6 +133,7 @@ HelperFunction::HelperFunction(int year, bool isData)
 
         x_mupTaxis = mu_corr->GetXaxis(); y_muetaaxis = mu_corr->GetYaxis();
         maxPtMu = x_mupTaxis->GetXmax(); minPtMu = x_mupTaxis->GetXmin();
+
 
 }
 
@@ -245,8 +249,8 @@ double HelperFunction::pterr( std::vector< float> Candidate, bool isData, int ye
     		int xbin = x_mupTaxis->FindBin(Candidate[0]);
     		int ybin = y_muetaaxis->FindBin(fabs(Candidate[1]));
 		if(Candidate[0] > minPtMu && Candidate[0] < maxPtMu ){
-			pterrLep*=mu_corr->GetBinContent(xbin,ybin);
-        	} else {
+//			pterrLep*=mu_corr->GetBinContent(xbin,ybin);
+//        	} else {
             		pterrLep*=1.0;
         	}
 	}
@@ -309,11 +313,11 @@ double HelperFunction::pterr( TLorentzVector lepton, double lep_ptError, reco::C
     int xbin = x_mupTaxis->FindBin(lepton.Pt());
     int ybin = y_muetaaxis->FindBin(fabs(lepton.Eta()));
     if(lepton.Pt()>minPtMu && lepton.Pt()<maxPtMu ){
-            pterrLep*=mu_corr->GetBinContent(xbin,ybin);
-        } else {
+//            pterrLep*=mu_corr->GetBinContent(xbin,ybin);
+//        } else {
             pterrLep*=1.0;
         }
-      }
+  }
   else if ((pf = dynamic_cast<reco::PFCandidate *> (&(*c)) ) != 0)
       { 
         pterrLep=1;//pterr(c, isData, year);
