@@ -1,0 +1,1 @@
+/store/mc/RunIII2024Summer24NanoAODv15/GluGluH-Hto2Zto4L_Par-M-125_TuneCP5_13p6TeV_powheg-jhugen-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v2/110000/524d5085-8836-4770-8701-2ac2be23eb1d.root
