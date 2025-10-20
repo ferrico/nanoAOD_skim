@@ -181,7 +181,7 @@ std::vector<unsigned int> H4LTools::goodFsrPhotons(){
     return goodFsrPhoton;
 }
 
-std::vector<unsigned int> H4LTools::SelectedJets(std::vector<unsigned int> ele, std::vector<unsigned int> mu){
+std::vector<unsigned int> H4LTools::SelectedJets(std::vector<unsigned int> ele, std::vector<unsigned int> mu, int year){
     std::vector<unsigned int> goodJets;
     //unsigned nJ = (*nJet).Get()[0];
     for(unsigned int i=0;i<Jet_pt.size();i++){
@@ -189,13 +189,30 @@ std::vector<unsigned int> H4LTools::SelectedJets(std::vector<unsigned int> ele, 
 
         if((Jet_pt[i]>JetPtcut)&&(fabs(Jet_eta[i])<JetEtacut)){
 		bool Jet_passJetIdTight = false;
-		if (fabs(Jet_eta[i]) <= 2.7) Jet_passJetIdTight = Jet_jetId[i] & (1 << 1);
-		else if (abs(Jet_eta[i]) > 2.7 && abs(Jet_eta[i]) <= 3.0) Jet_passJetIdTight = (Jet_jetId[i] & (1 << 1)) && (Jet_neHEF[i] < 0.99);
-		else if (abs(Jet_eta[i]) > 3.0) Jet_passJetIdTight = (Jet_jetId[i] & (1 << 1)) && (Jet_neEmEF[i] < 0.4);
+                bool Jet_passJetIdTightLepVeto = false;
 
-		bool Jet_passJetIdTightLepVeto = false;
-		if (abs(Jet_eta[i]) <= 2.7) Jet_passJetIdTightLepVeto = Jet_passJetIdTight && (Jet_muEF[i] < 0.8) && (Jet_chEmEF[i] < 0.8);
-		else Jet_passJetIdTightLepVeto = Jet_passJetIdTight;
+		if(year < 20240){
+			if (fabs(Jet_eta[i]) <= 2.7) Jet_passJetIdTight = Jet_jetId[i] & (1 << 1);
+			else if (abs(Jet_eta[i]) > 2.7 && abs(Jet_eta[i]) <= 3.0) Jet_passJetIdTight = (Jet_jetId[i] & (1 << 1)) && (Jet_neHEF[i] < 0.99);
+			else if (abs(Jet_eta[i]) > 3.0) Jet_passJetIdTight = (Jet_jetId[i] & (1 << 1)) && (Jet_neEmEF[i] < 0.4);
+
+			if (abs(Jet_eta[i]) <= 2.7) Jet_passJetIdTightLepVeto = Jet_passJetIdTight && (Jet_muEF[i] < 0.8) && (Jet_chEmEF[i] < 0.8);
+			else Jet_passJetIdTightLepVeto = Jet_passJetIdTight;
+		}
+		/*
+		else{
+			if (abs(Jet_eta[i]) <= 2.6)
+				Jet_passJetIdTight = (Jet_neHEF[i] < 0.99) && (Jet_neEmEF[i] < 0.9) && (Jet_chMultiplicity[i] + Jet_neMultiplicity[i] > 1) && (Jet_chHEF[i] > 0.01) && (Jet_chMultiplicity[i] > 0);
+			else if (abs(Jet_eta[i]) > 2.6 && abs(Jet_eta[i]) <= 2.7)
+				Jet_passJetIdTight = (Jet_neHEF[i] < 0.90) && (Jet_neEmEF[i] < 0.99);
+			else if (abs(Jet_eta[i]) > 2.7 && abs(Jet_eta[i]) <= 3.0)
+				Jet_passJetIdTight = (Jet_neHEF[i] < 0.99);
+			else if (abs(Jet_eta[i]) > 3.0)
+				Jet_passJetIdTight = (Jet_neMultiplicity[i] >= 2) && (Jet_neEmEF[i] < 0.4);
+
+			if (abs(Jet_eta[i]) <= 2.7) Jet_passJetIdTightLepVeto = Jet_passJetIdTight && (Jet_muEF[i] < 0.8) && (Jet_chEmEF[i] < 0.8);
+			else Jet_passJetIdTightLepVeto = Jet_passJetIdTight;
+		}*/
 
 		if(Jet_passJetIdTightLepVeto && Jet_passJetIdTight){
 //            if((Jet_jetId[i]>0)&&((Jet_pt[i]>50)||(Jet_puId[i]==7))){
@@ -715,7 +732,7 @@ void H4LTools::LeptonSelection(int year){
     for (unsigned int juj=0;juj<looseMu.size();juj++){
         if(AllMuid[looseMu[juj]]) tightmuforjetidx.push_back(looseMu[juj]);
     }
-    jetidx = SelectedJets(tighteleforjetidx,tightmuforjetidx);
+    jetidx = SelectedJets(tighteleforjetidx,tightmuforjetidx, year);
 //    std::cout<<"jetidx = "<<jetidx.size()<<std::endl;
 
     for(unsigned int ie=0; ie<Electronindex.size();ie++){
@@ -833,23 +850,21 @@ void H4LTools::LeptonSelection(int year){
         lep_lowEleBDT.push_back(-999);
 	lep_inTimeMuon.push_back(Muon_inTimeMuon[Muonindex[imu]]);
 	//////////// -----> time information
-/*
 	lep_timeAtIpInOut.push_back(-999);
         lep_timeAtIpInOutErr.push_back(-999);
         lep_timeAtIpOutIn.push_back(-999);
         lep_timeAtIpOutInErr.push_back(-999);
         lep_inverseBeta.push_back(-999);
         lep_inverseBetaErr.push_back(-999);
-*/
 	//////////// -----> time information
-//	/*
+	/*
         lep_timeAtIpInOut.push_back(Muon_timeAtIpInOut[Muonindex[imu]]);
         lep_timeAtIpInOutErr.push_back(Muon_timeAtIpInOutErr[Muonindex[imu]]);
         lep_timeAtIpOutIn.push_back(Muon_timeAtIpOutIn[Muonindex[imu]]);
         lep_timeAtIpOutInErr.push_back(Muon_timeAtIpOutInErr[Muonindex[imu]]);
         lep_inverseBeta.push_back(Muon_inverseBeta[Muonindex[imu]]);
         lep_inverseBetaErr.push_back(Muon_inverseBetaErr[Muonindex[imu]]);
-//	*/
+	*/
 	float RelIsoNoFsr;
         RelIsoNoFsr = Muon_pfRelIso03_all[Muonindex[imu]];//Muiso[imu];
 //	std::cout<<"FILIPPO RelIsoNoFsr = "<<RelIsoNoFsr<<"\t"<<imu<<std::endl;
@@ -1655,9 +1670,15 @@ bool H4LTools::ZZSelection(){
         std::cout<<"FSR: "<<ZZsystem.M()<<" noFSR:"<<ZZsystemnofsr.M()<<std::endl;
     }*/
     
-    float massZZ;
-    if (isFSR) massZZ = ZZsystem.M();
-    else massZZ = ZZsystemnofsr.M();
+    float massZZ = -1;
+    if (isFSR){
+	    massZZ = ZZsystem.M();
+	    pt4l = ZZsystem.Pt();
+    }
+    else{
+	    massZZ = ZZsystemnofsr.M();
+	    pt4l = ZZsystemnofsr.Pt();
+    }
     if ((massZZ>HiggscutDown)&&(massZZ<HiggscutUp)){
         if (flag2e2mu) cutm4l2e2mu++;
         if (flag4e) cutm4l4e++;
@@ -1739,6 +1760,7 @@ bool H4LTools::ZZSelection(){
            phij2 = Jet2.Phi();
            mj2 = Jet2.M();
 	   mjj = (Jet1 + Jet2).M();
+	   ptjj = (Jet1 + Jet2).Pt();
 	   etajj = (Jet1 + Jet2).Eta();
 	   phijj = (Jet1 + Jet2).Phi();
 	   Detajj = (Jet1 - Jet2).Eta();
@@ -2606,6 +2628,14 @@ auto t0 = std::chrono::high_resolution_clock::now();
                   f_eleReco_lowPt  = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2023postBPix.root";
                   f_mu = basePath+"final_HZZ_SF_2023D_RMS_mupogsysts.root";
           }
+	  else if(year == 2024){
+                  //std::cout<<"WARNING 2023 postBPix Electron ID SFs - for now using 2022postEE"<<std::endl;
+                  f_eleID          = basePath+"SF2024eleID.root";
+                  f_eleReco_highPt = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/highPt/egammaEffi.txt_EGM2D.root";
+                  f_eleReco_midPt  = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/midPt/egammaEffi.txt_EGM2D.root";
+                  f_eleReco_lowPt  = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2023postBPix.root";
+                  f_mu = basePath+"HZZ_HZZ_SF_2024_RMS_mupogsystsC.root";
+          }
           else{
                 //std::cout<<"Wrong year for SF\t"<<year<<std::endl;
 	        tmp.push_back(SF);
@@ -2702,3 +2732,88 @@ auto t0 = std::chrono::high_resolution_clock::now();
 
 }
 
+int H4LTools::recoSTXS(){
+	
+	int stxs = -1;
+
+	// STXS Stage 1.0 //
+	if(lep_pt.size() == 4 && D_VBF > 0.5 && \
+            (((njets_pt30_eta4p7 == 2 || njets_pt30_eta4p7 == 3) && nBtaggedjets_pt30_eta4p7 < 2) || \
+            (njets_pt30_eta4p7 == 4 && nBtaggedjets_pt30_eta4p7 == 0))) stxs = 3; // 2jet-tagged
+	else{
+		if(lep_pt.size() == 4 && D_bkg_VHdec > 0.5 && \
+	            (njets_pt30_eta4p7 == 2 || njets_pt30_eta4p7 == 3 || \
+        	    (njets_pt30_eta4p7 == 4 && nBtaggedjets_pt30_eta4p7 == 0))) stxs = 4; // VH-hadronic
+		else{
+			if((lep_pt.size() == 5 && njets_pt30_eta4p7 == 0) || \
+		            (njets_pt30_eta4p7 < 4 && nBtaggedjets_pt30_eta4p7 == 0 && lep_pt.size() == 5)) stxs = 5; // VH-leptonic
+			else{
+				if(lep_pt.size() == 4 && \
+			            njets_pt30_eta4p7 > 3 && nBtaggedjets_pt30_eta4p7 > 1) stxs = 7; // ttH-hadronic
+				else{
+					if(lep_pt.size() > 4) stxs = 6; // tH-leptonic
+					else{
+						if(lep_pt.size() == 4 && D_VBF1j > 0.7 && \
+					            njets_pt30_eta4p7 == 1) stxs = 2; // 1jet
+						else{
+							stxs = 1; // untagged;
+						}
+					}
+				}
+			}
+		}
+	}
+	if( stxs == -1)
+		return stxs;
+
+	if(stxs == 1){
+		if(pt4l > 200) stxs = 109;
+		else{
+			if(njets_pt30_eta4p7 == 0){
+				if(pt4l < 10) stxs = 101;
+				else if(pt4l < 200) stxs = 102;
+				else	stxs = -1;
+			}
+			else if(njets_pt30_eta4p7 == 1){
+				if(pt4l < 60) stxs = 103;
+				else if(pt4l < 120) stxs = 104;
+				else if(pt4l < 200) stxs = 105;
+				else    stxs = -1;
+			}
+			else if(njets_pt30_eta4p7 == 2){
+				if(mjj > 350) stxs = 110;
+				else{
+	        	                if(pt4l < 60) stxs = 106;
+        	        	        else if(pt4l < 120) stxs = 107;
+                	        	else if(pt4l < 200) stxs = 108;
+	                	        else    stxs = -1;
+				}
+        	        }
+			else stxs = -1;
+		}
+	}
+	if(stxs == 2) stxs = 111;
+	
+	if(stxs == 3){
+		if(pt4l < 200 && ptjj < 25 && mjj > 350 && mjj < 700) stxs = 112;
+		else if(pt4l < 200 && ptjj < 25 && mjj > 700) stxs = 113;
+		else if(pt4l < 200 && ptjj > 25 && mjj > 350) stxs = 114;
+		else stxs = 116;
+	}
+	
+	if(stxs == 4){
+		if(mjj > 60 && mjj < 120) stxs = 117;
+		else stxs = 118;
+	}
+
+	if(stxs == 5){
+		if(pt4l < 150) stxs = 119;
+		else stxs = 120;
+	}
+
+	if(stxs == 6) stxs = 121;
+	if(stxs == 7) stxs = 122;
+
+	return stxs;
+
+}

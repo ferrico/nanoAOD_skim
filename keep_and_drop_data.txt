@@ -8,6 +8,7 @@ keep lumi*
 keep HTXS*
 #keep BeamSpot*
 #
+keep *STXS*
 keep *4l
 keep *Z1
 keep *Z2
@@ -47,3 +48,5 @@ keep mva_*
 #keep PuppiMET*
 keep Jet*
 keep pu*
+keep Flag_JetVeto*
+

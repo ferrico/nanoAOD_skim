@@ -24,6 +24,7 @@ class H4LTools {
       float fsrphotonPtcut,fsrphotonEtacut,fsrphotonIsocut,fsrphotondRlcut,fsrphotondRlOverPtcut, JetPtcut,JetEtacut, JetbTagcut;
       float eleBDTWPLELP,eleBDTWPMELP,eleBDTWPHELP,eleBDTWPLEHP,eleBDTWPMEHP,eleBDTWPHEHP;
       float mass3l;
+      float pt4l;
       bool passedZ1LSelection;
       bool RecoFourMuEvent, RecoFourEEvent, RecoTwoETwoMuEvent, RecoTwoMuTwoEEvent;
       void InitializeElecut(float elePtcut_,float eleEtacut_,float elesip3dCut_,float eleLoosedxycut_,float eleLoosedzcut_,float eleIsocut_,float eleBDTWPLELP_,float eleBDTWPMELP_, float eleBDTWPHELP_,float eleBDTWPLEHP_,float eleBDTWPMEHP_,float eleBDTWPHEHP_){
@@ -131,12 +132,17 @@ class H4LTools {
 	Jet_btagDeepFlavB.push_back(Jet_btagDeepFlavB_);
       }
     
+      void SetJetsMultiplicity(short Jet_chMultiplicity_, short Jet_neMultiplicity_, float Jet_chHEF_){
+	     Jet_chMultiplicity.push_back(Jet_chMultiplicity_);
+	    Jet_neMultiplicity.push_back(Jet_neMultiplicity_);
+	    Jet_chHEF.push_back(Jet_chHEF_);
+      } 
       
       void SetMuons(float Muon_pt_, float Muon_eta_, float Muon_phi_, float Muon_mass_, bool Muon_isGlobal_, bool Muon_isTracker_,
                         float Muon_dxy_, float Muon_dz_,float Muon_sip3d_, float Muon_ptErr_,
 			int Muon_nTrackerLayers_, bool Muon_isPFcand_, int Muon_pdgId_,int Muon_charge_, float Muon_pfRelIso03_all_, float Muon_pfRelIso03_chg_, float Muon_mva_, Int_t Muon_nStations_, bool Muon_isStandalone_, float Muon_bsConstrainedPt_, float Muon_bsConstrainedPtErr_, bool Muon_inTimeMuon_
 //##### for muon time information ---> need to add branches from miniaod
-			, float Muon_timeAtIpInOut_, float Muon_timeAtIpInOutErr_, float Muon_timeAtIpOutIn_, float Muon_timeAtIpOutInErr_, float Muon_inverseBeta_, float Muon_inverseBetaErr_
+//			, float Muon_timeAtIpInOut_, float Muon_timeAtIpInOutErr_, float Muon_timeAtIpOutIn_, float Muon_timeAtIpOutInErr_, float Muon_inverseBeta_, float Muon_inverseBetaErr_
 //##### for muon time information ---> need to add branches from miniaod
 		   ){
         Muon_pt.push_back(Muon_pt_); 
@@ -161,14 +167,14 @@ class H4LTools {
 	Muon_bsConstrainedPt.push_back(Muon_bsConstrainedPt_);
 	Muon_bsConstrainedPtErr.push_back(Muon_bsConstrainedPtErr_);
 	Muon_inTimeMuon.push_back(Muon_inTimeMuon_);
-///*
+/*
         Muon_timeAtIpInOut.push_back(Muon_timeAtIpInOut_);
         Muon_timeAtIpInOutErr.push_back(Muon_timeAtIpInOutErr_);
         Muon_timeAtIpOutIn.push_back(Muon_timeAtIpOutIn_);
         Muon_timeAtIpOutInErr.push_back(Muon_timeAtIpOutInErr_);
         Muon_inverseBeta.push_back(Muon_inverseBeta_);
         Muon_inverseBetaErr.push_back(Muon_inverseBetaErr_);
-//*/
+*/
       }
       void SetMuonsGen(int Muon_genPartIdx_){
         Muon_genPartIdx.push_back(Muon_genPartIdx_);
@@ -245,6 +251,7 @@ class H4LTools {
       std::vector<bool> passTight_Id();
       std::vector<unsigned int> goodFsrPhotons();
       std::vector<float> leptonsWeight(int year, int id, float pt, float eta, bool isCrack);
+      int recoSTXS();
       unsigned doFsrRecovery(TLorentzVector Lep);
       std::vector<int> doFsrRecovery_Run3(std::vector<unsigned int> goodfsridx, unsigned lepidx, int lepflavor);//lepflavor 11 or 13
 
@@ -260,7 +267,7 @@ class H4LTools {
       std::vector<float> MuonFsrPt();
       std::vector<float> MuonFsrEta();
       std::vector<float> MuonFsrPhi();
-      std::vector<unsigned int> SelectedJets(std::vector<unsigned int> ele, std::vector<unsigned int> mu);
+      std::vector<unsigned int> SelectedJets(std::vector<unsigned int> ele, std::vector<unsigned int> mu, int year);
       std::vector<TLorentzVector> LowElectrondressed_Run3;
       std::vector<TLorentzVector> Electrondressed_Run3;
       std::vector<TLorentzVector> Muondressed_Run3;
@@ -412,6 +419,9 @@ class H4LTools {
         Jet_jetId.clear();Jet_puId.clear(); Zlep1lepindex.clear();Zlep2lepindex.clear();
 	Jet_neHEF.clear(); Jet_neEmEF.clear(); Jet_muEF.clear(); Jet_chEmEF.clear();
 	Jet_btagDeepFlavB.clear();
+	Jet_chMultiplicity.clear();
+	Jet_neMultiplicity.clear();
+	Jet_chHEF.clear();
         FsrPhoton_dROverEt2.clear();FsrPhoton_phi.clear();FsrPhoton_eta.clear();FsrPhoton_pt.clear();FsrPhoton_relIso03.clear(); FsrPhoton_electronIdx.clear(); FsrPhoton_muonIdx.clear();
         Candidate.clear();
 	Candidate_VXBS.clear();
@@ -459,6 +469,7 @@ class H4LTools {
         Electronindex.clear();  Muonindex.clear(); AllEid.clear(); AllMuid.clear(); Elelist.clear(); Mulist.clear(); ElelistFsr.clear(); Mulist.clear(); 
         Elechg.clear(); Muchg.clear(); Muiso.clear(); Mumva.clear();Eiso.clear(); Eid.clear(); muid.clear(); istightele.clear(); istightmu.clear(); TightEleindex.clear(); TightMuindex.clear();
 	mass3l = -99;
+	pt4l = -999;
         for (int i=0; i<4; i++) {lep_Hindex[i]=-1;}
         passedZ1LSelection = false;
         Z1.SetPtEtaPhiM(0,0,0,0);
@@ -478,7 +489,7 @@ class H4LTools {
 
         pTj1 = -99;  etaj1 = -99;  phij1 = -99;  mj1 = -99;
         pTj2 = -99;  etaj2 = -99;  phij2 = -99;  mj2 = -99;
-	mjj = -999; etajj = -999; phijj = -999; Detajj = -999; Dphijj = -999;
+	mjj = -999; ptjj = -999; etajj = -999; phijj = -999; Detajj = -999; Dphijj = -999;
         mva_Rhard = -999; mva_zstar = -999; mva_cosTheta_star = -999;  mva_phiZZ = -999;  mva_phi1 = -999; mva_theta1 = -999; mva_theta2 = -999;
 	mva_output_ggH = -999; mva_output_VBF = -999; mva_output_WH = -999; mva_output_qqZZ = -999;
 	njets_pt30_eta4p7 = 0;
@@ -513,7 +524,7 @@ class H4LTools {
 
       int cut4e, cut4mu, cut2e2mu, cutZZ4e, cutZZ4mu, cutZZ2e2mu, cutm4l4e, cutm4l4mu, cutm4l2e2mu, cutghost2e2mu, cutQCD2e2mu, cutLepPt2e2mu, cutghost4e, cutQCD4e, cutLepPt4e, cutghost4mu, cutQCD4mu, cutLepPt4mu;
       float pTL1, etaL1, phiL1, massL1, pTL2, etaL2, phiL2, massL2, pTL3, etaL3, phiL3, massL3, pTL4, etaL4, phiL4, massL4;
-      float pTj1, etaj1, phij1, mj1, pTj2, etaj2, phij2, mj2, mjj, etajj, phijj, Detajj, Dphijj;
+      float pTj1, etaj1, phij1, mj1, pTj2, etaj2, phij2, mj2, mjj, ptjj, etajj, phijj, Detajj, Dphijj;
 
       float mva_Rhard, mva_zstar, mva_cosTheta_star, mva_phiZZ, mva_phi1, mva_theta1, mva_theta2;
       float mva_output_ggH, mva_output_VBF, mva_output_WH, mva_output_qqZZ;
@@ -565,6 +576,9 @@ class H4LTools {
       std::vector<float> Jet_pt,Jet_phi,Jet_eta,Jet_mass,Jet_btagDeepC;
       std::vector<float> Jet_neHEF, Jet_neEmEF, Jet_muEF, Jet_chEmEF;
       std::vector<float> Jet_btagDeepFlavB;
+      std::vector<short> Jet_chMultiplicity;
+      std::vector<short> Jet_neMultiplicity;
+      std::vector<float> Jet_chHEF;
       std::vector<int> Jet_jetId,Jet_puId;
       std::vector<float> Muon_pt,Muon_phi,Muon_eta,Muon_mass,Muon_dxy,Muon_dz,Muon_sip3d,Muon_ptErr,Muon_pfRelIso03_all, Muon_pfRelIso03_chg, Muon_mva;
       std::vector<int> Muon_nTrackerLayers,Muon_genPartIdx,Muon_pdgId,Muon_charge;

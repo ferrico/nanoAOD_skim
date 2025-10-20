@@ -166,6 +166,7 @@ class HZZAnalysisCppProducer(Module):
         self.initReaders(inputTree)  # initReaders must be called in beginFile
         self.out = wrappedOutputTree
         self.out.branch("mass4l",  "F")
+        self.out.branch("pt4l", "F")
         self.out.branch("mass4l_NoFsr", "F")
         self.out.branch("mass4lErr", "F")
         self.out.branch("mass4lREFIT", "F")
@@ -230,6 +231,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("phij2",  "F")
         self.out.branch("mj2",  "F")
         self.out.branch("mjj", "F")
+        self.out.branch("ptjj","F")
         self.out.branch("etajj", "F")
         self.out.branch("phijj", "F")
         self.out.branch("Detajj", "F")
@@ -289,7 +291,11 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("D_HadWH", "F")
         self.out.branch("D_HadZH", "F")
         self.out.branch("D_VBF", "F")
+        self.out.branch("STXS", "I")
+        #if 2024 == self.year:
+        #    self.out.branch("Flag_JetVetoe", "O", title="Event veto flag from Jet Veto Map")
 
+        #self.out.branch("Flag_JetVetoe", "O", title="Event veto flag from Jet Veto Map")
         self.out.branch("mva_Rhard", "F")
         self.out.branch("mva_zstar", "F")
         self.out.branch("mva_cosTheta_star", "F")
@@ -301,14 +307,14 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("mva_output_VBF", "F")
         self.out.branch("mva_output_WH", "F")
         self.out.branch("mva_output_qqZZ", "F")
-
+        '''
         self.out.branch("lep_timeAtIpInOut", "F", lenVar = "len(lep_pt)")
         self.out.branch("lep_timeAtIpInOutErr", "F", lenVar = "len(lep_pt)")
         self.out.branch("lep_timeAtIpOutIn", "F", lenVar = "len(lep_pt)")
         self.out.branch("lep_timeAtIpOutInErr", "F", lenVar = "len(lep_pt)")
         self.out.branch("lep_inverseBeta", "F", lenVar = "len(lep_pt)")
         self.out.branch("lep_inverseBetaErr", "F", lenVar = "len(lep_pt)")
-
+        '''
 
 
 
@@ -399,6 +405,7 @@ class HZZAnalysisCppProducer(Module):
         eta4l = -99
         phi4l = -99
         mass4l = 0
+        pt4l = 0
         mass4lErr = 999
         mass4l_VXBS = 0
         mass4lREFIT = 0
@@ -465,10 +472,10 @@ class HZZAnalysisCppProducer(Module):
             self.worker.SetMuons(xm.pt, xm.eta, xm.phi, xm.mass, xm.isGlobal, xm.isTracker,
                                 xm.dxy, xm.dz, xm.sip3d, xm.ptErr, xm.nTrackerLayers, xm.isPFcand,
                                 xm.pdgId, xm.charge, xm.pfRelIso03_all, xm.pfRelIso03_chg, xm.mvaLowPt, xm.nStations, xm.isStandalone, xm.bsConstrainedPt, xm.bsConstrainedPtErr, xm.inTimeMuon
-#                                )
+                                )
 
 ##### for muon time information ---> need to add branches from miniaod
-                                , xm.timeAtIpInOut, xm.timeAtIpInOutErr, xm.timeAtIpOutIn, xm.timeAtIpOutInErr, xm.inverseBeta, xm.inverseBetaErr)
+#                                , xm.timeAtIpInOut, xm.timeAtIpInOutErr, xm.timeAtIpOutIn, xm.timeAtIpOutInErr, xm.inverseBeta, xm.inverseBetaErr)
 ##### for muon time information ---> need to add branches from miniaod
 
 
@@ -478,7 +485,8 @@ class HZZAnalysisCppProducer(Module):
         for xj in jets:
             #self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, 0.8, 7, xj.btagDeepFlavB)
             if 2024 == self.year:
-                self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass, 2, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagDeepFlavB)
+                self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass, xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagUParTAK4B)
+                self.worker.SetJetsMultiplicity(xj.chMultiplicity, xj.neMultiplicity, xj.chHEF)
             else:
                 self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagDeepFlavB)
 
@@ -535,13 +543,14 @@ class HZZAnalysisCppProducer(Module):
         lepFSR_mass = self.worker.lepFSR_mass
         lepFSR_ptVXBS = self.worker.lepFSR_ptVXBS
         lep_inTimeMuon = self.worker.lep_inTimeMuon
+        '''
         lep_timeAtIpInOut = self.worker.lep_timeAtIpInOut
         lep_timeAtIpInOutErr = self.worker.lep_timeAtIpInOutErr
         lep_timeAtIpOutIn = self.worker.lep_timeAtIpOutIn
         lep_timeAtIpOutInErr = self.worker.lep_timeAtIpOutInErr
         lep_inverseBeta = self.worker.lep_inverseBeta
         lep_inverseBetaErr = self.worker.lep_inverseBetaErr
-
+        '''
         #if ((self.worker.nTightEle<2)&(self.worker.nTightMu<2)):
         #    pass
         if isMC:
@@ -696,6 +705,7 @@ class HZZAnalysisCppProducer(Module):
         phij2 = self.worker.phij2
         mj2 = self.worker.mj2
         mjj = self.worker.mjj
+        ptjj = self.worker.ptjj
         etajj = self.worker.etajj
         phijj = self.worker.phijj
         Detajj = self.worker.Detajj
@@ -713,6 +723,7 @@ class HZZAnalysisCppProducer(Module):
             massL3, massL4 = massL4, massL3
 
         mass4l = self.worker.ZZsystem.M()
+        pt4l = self.worker.ZZsystem.Pt()
         
         if passedFullSelection: 
             pT4l = self.worker.ZZsystem.Pt()
@@ -745,6 +756,11 @@ class HZZAnalysisCppProducer(Module):
         else:
             Weight = 1
 
+        #if 2024 == self.year:
+        #    Flag_JetVetoe = 0
+        #else:
+        #    Flag_JetVetoe = 999
+
         if mass4l > 0 and len(lep_ptError) > 3:
 #        if 1 > 2:
             Candidate = self.worker.Candidate
@@ -773,6 +789,8 @@ class HZZAnalysisCppProducer(Module):
             D_HadWH = self.worker.D_HadWH
             D_HadZH = self.worker.D_HadZH
             D_VBF = self.worker.D_VBF
+
+            STXS = self.worker.recoSTXS()
 
             mva_Rhard = self.worker.mva_Rhard
             mva_zstar = self.worker.mva_zstar
@@ -804,6 +822,7 @@ class HZZAnalysisCppProducer(Module):
             D_HadWH = -999
             D_HadZH = -999
             D_VBF = -999
+            STXS = -1
             mva_Rhard = -999
             mva_zstar= -999
             mva_cosTheta_star = -999
@@ -815,8 +834,10 @@ class HZZAnalysisCppProducer(Module):
             mva_output_VBF = -999
             mva_output_WH = -999
             mva_output_qqZZ = -999
+
         #print("--------")
         self.out.fillBranch("mass4l",mass4l)
+        self.out.fillBranch("pt4l", pt4l)
         self.out.fillBranch("mass4l_NoFsr", mass4l_NoFsr)
         self.out.fillBranch("mass4lErr", mass4lErr)
         self.out.fillBranch("mass4lREFIT", mass4lREFIT)
@@ -910,6 +931,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("etaj2",etaj2)
         self.out.fillBranch("phij2",phij2)
         self.out.fillBranch("mjj",mjj)
+        self.out.fillBranch("ptjj", ptjj)
         self.out.fillBranch("etajj",etajj)
         self.out.fillBranch("phijj",phijj)
         self.out.fillBranch("Detajj",Detajj)
@@ -942,7 +964,11 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("D_HadWH", D_HadWH)
         self.out.fillBranch("D_HadZH", D_HadZH)
         self.out.fillBranch("D_VBF", D_VBF)
+        self.out.fillBranch("STXS", STXS)
+        #if 2024 == self.year:
+        #       self.out.fillBranch("Flag_JetVetoe", Flag_JetVetoe) 
 
+        #self.out.fillBranch("Flag_JetVetoe", Flag_JetVetoe)
         self.out.fillBranch("mva_Rhard", mva_Rhard)
         self.out.fillBranch("mva_zstar", mva_zstar)
         self.out.fillBranch("mva_cosTheta_star", mva_cosTheta_star)
@@ -954,14 +980,14 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("mva_output_VBF", mva_output_VBF)
         self.out.fillBranch("mva_output_WH", mva_output_WH)
         self.out.fillBranch("mva_output_qqZZ", mva_output_qqZZ)
-
+        '''
         self.out.fillBranch("lep_timeAtIpInOut", lep_timeAtIpInOut)
         self.out.fillBranch("lep_timeAtIpInOutErr", lep_timeAtIpInOutErr)
         self.out.fillBranch("lep_timeAtIpOutIn", lep_timeAtIpOutIn)
         self.out.fillBranch("lep_timeAtIpOutInErr", lep_timeAtIpOutInErr)
         self.out.fillBranch("lep_inverseBeta", lep_inverseBeta)
         self.out.fillBranch("lep_inverseBetaErr", lep_inverseBetaErr)
-
+        '''
 
 
         """with open("SyncLepton2018GGH.txt", 'a') as f:

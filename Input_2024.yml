@@ -83,7 +83,7 @@ Muon:
   Etacut:
     2.4
   Sip3dcut:
-    8 # was 4
+    8 # was 4 ### MVA
   Loosedxycut:
     0.5
   Loosedzcut:
@@ -99,7 +99,7 @@ Muon:
   HighPtBound:
     200
   Isocut:
-    999 # was 0.35
+    999 # was 0.35 ### MVA
 
 FsrPhoton:
   pTcut:
@@ -119,7 +119,7 @@ Jet:
   Etacut:
     4.7
   bTagcut: #### medium WP for 2023 BPix deepJet
-    0.2435 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
+    0.1272 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
 
 inputdataNPV:
   "data/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-69200ub-99bins.root"

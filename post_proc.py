@@ -8,9 +8,11 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.common.muonScaleResProduce
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.eleScaleSmearingProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.jetJERC import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.jetVMAP import * 
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.jetIdProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import createJMECorrector
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.jetIdUpdate import *
 
 # Custom module imports
 #from H4Lmodule import *
@@ -77,15 +79,17 @@ def main():
         sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2024
         year_tag = 2024
         cfgFile = "Input_2024.yml"
-        modulesToRun.extend([getMuonScaleRes(year, "BPix", isMC, overwritePt=True)])   
-        modulesToRun.extend([getEleScaleRes(2023, 20235, isMC, overwritePt=True, EtDependent=True)])
-        #modulesToRun.extend([getJetCorrected(2023, "BPix", isMC, overwritePt=True)])
-        #modulesToRun.extend([getJetVetoMap(2023, "BPix")])
+        modulesToRun.extend([getMuonScaleRes(year, "", isMC, overwritePt=True)])   
+        modulesToRun.extend([getEleScaleRes(2024, 2024, isMC, overwritePt=True, EtDependent=True)])
+        modulesToRun.extend([getJetIdProducer(2024, "2024")])
+        #modulesToRun.extend([jetIdUpdate()])
+        #modulesToRun.extend([getJetCorrected(2024, "2024", isMC, overwritePt=True)])
+        #m##odulesToRun.extend([getJetIdProducer(2024, "2024")])
+        #modulesToRun.extend([getJetVetoMap(2024, "2024")])
 
     if "Summer23" in first_file or "Run2023" in first_file:
         """ 2023 run """
         year = 2023
-        #cfgFile = "Input_2023.yml"
         jsonFileName = "golden_Json/Cert_Collisions2023_366442_370790_Golden.json"
         sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2023
         if "BPix" in first_file or "Run2023D" in first_file:
@@ -94,6 +98,7 @@ def main():
             modulesToRun.extend([getMuonScaleRes(year, "BPix", isMC, overwritePt=True)])   
             modulesToRun.extend([getEleScaleRes(year, year_tag, isMC, overwritePt=True, EtDependent=True)])
             modulesToRun.extend([getJetCorrected(year, "BPix", isMC, overwritePt=True)])
+            #modulesToRun.extend([getJetIdProducer(year, "BPix")])
             modulesToRun.extend([getJetVetoMap(year, "BPix")])
         else:
             year_tag = 20230
@@ -101,13 +106,13 @@ def main():
             modulesToRun.extend([getMuonScaleRes(year, "", isMC, overwritePt=True)]) 
             modulesToRun.extend([getEleScaleRes(year, year_tag, isMC, overwritePt=True, EtDependent=True)])
             modulesToRun.extend([getJetCorrected(year, "", isMC, overwritePt=True)])
+            #modulesToRun.extend([getJetIdProducer(year, "")])
             modulesToRun.extend([getJetVetoMap(year, "")])
 
     if "Summer22" in first_file or "Run2022" in first_file:
         """Summer22 and Run2022 for identification of 2022 MC and data respectiverly
         """
         year = 2022
-        #cfgFile = "Input_2022.yml"
         jsonFileName = "golden_Json/Cert_Collisions2022_355100_362760_Golden.json"
         sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2022
         if "EE" in first_file or "Run2022E" in first_file or "Run2022F" in first_file or "Run2022G" in first_file:
@@ -120,6 +125,7 @@ def main():
             modulesToRun.extend([getMuonScaleRes(year, "EE", isMC, overwritePt=True)]) 
             modulesToRun.extend([getEleScaleRes(year, year_tag, isMC, overwritePt=True, EtDependent=False)])
             modulesToRun.extend([getJetCorrected(year, jet_tag, isMC, overwritePt=True)])
+            #modulesToRun.extend([getJetIdProducer(year, "EE")])
             modulesToRun.extend([getJetVetoMap(year, "EE")])
         else:
             year_tag = 20220
@@ -127,6 +133,7 @@ def main():
             modulesToRun.extend([getMuonScaleRes(year, "", isMC, overwritePt=True)]) 
             modulesToRun.extend([getEleScaleRes(year, year_tag, isMC, overwritePt=True, EtDependent=False)])
             modulesToRun.extend([getJetCorrected(year, "", isMC, overwritePt=True)])
+            #modulesToRun.extend([getJetIdProducer(year, "")])
             modulesToRun.extend([getJetVetoMap(year, "")])
 
     print("Input json file: {}".format(jsonFileName))
@@ -136,9 +143,6 @@ def main():
     print("year: {}".format(year))
     print("year_tag: {}".format(year_tag))
     print("first_file: {}".format(first_file))
-
-#    modulesToRun.extend([getJetCorrected(year, first_file, isMC)])
-#    modulesToRun.extend([getJetVetoMap(year, first_file)])
 
     H4LCppModule = lambda: HZZAnalysisCppProducer(year_tag,cfgFile, isMC, isFSR)
     modulesToRun.extend([H4LCppModule()])
