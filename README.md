@@ -3,8 +3,8 @@
 1. Step: 1: Get CMSSW release
 
    ```bash
-   cmsrel CMSSW_14_0_2
-   cd CMSSW_14_0_2/src
+   cmsrel CMSSW_15_0_2
+   cd CMSSW_15_0_2/src
    cmsenv
    ```
 
@@ -22,7 +22,13 @@
    git clone https://github.com/ferrico/nanoAOD_skim.git PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim
    cd PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim
    git checkout ZXCR_EL9
+   ./setup.sh
 
+
+
+------------- OLD ---------------
+------------- OLD ---------------
+------------- OLD ---------------
    # External package: yaml-cpp
    git clone git@github.com:jbeder/yaml-cpp.git external/yaml-cpp
    cd external/yaml-cpp/
