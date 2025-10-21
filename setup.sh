@@ -18,7 +18,10 @@ sh JHUGenMELA/MELA/setup.sh -j 8
 cd JHUGenMELA/MELA/data/el9_amd64_gcc12/
 chmod +x *.so
 cd $CMSSW_BASE/src
+mkdir ZX_JAKE
+cd ZX_JAKE
 git clone -b run3 git@github.com:ferrico/ZplusXpython.git
+git clone git@github.com:ferrico/HiggsMassMeasurement.git
 cd $CMSSW_BASE/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/
 cd $CMSSW_BASE/src
 git clone git@github.com:ferrico/nanoAOD-tools-modules.git PhysicsTools/NATModules

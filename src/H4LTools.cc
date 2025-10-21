@@ -1853,6 +1853,7 @@ bool H4LTools::ZZSelection(){
 		lep_tmp.SetPtEtaPhiM(lepFSR_ptVXBS[lep_Hindex[i]], lepFSR_eta[lep_Hindex[i]], lepFSR_phi[lep_Hindex[i]], lepFSR_mass[lep_Hindex[i]]);
 		H_VXBS += lep_tmp;
 		mass4l_VXBS = H_VXBS.M();
+		pt4l_VXBS = H_VXBS.Pt();
     }
   
         // HIGGS REST FRAME ///////////////////
@@ -2596,7 +2597,7 @@ auto t0 = std::chrono::high_resolution_clock::now();
 	  TH2D *h_Mu_SF;
 	  TH2D *h_Mu_Unc;
 
-        std::vector< float > tmp;
+	  std::vector< float > tmp;
 
           if (year == 20220){
                   f_eleID           = basePath+"SF2022eleID_preEE.root";

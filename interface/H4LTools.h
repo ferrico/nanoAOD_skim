@@ -355,6 +355,7 @@ class H4LTools {
       std::vector<float> lep_inverseBetaErr;
 
       float mass4l_VXBS;
+      float pt4l_VXBS;
       std::vector<int> Elechg;
       std::vector<int> Muchg;
       std::vector<float> Muiso,Eiso;
@@ -426,6 +427,7 @@ class H4LTools {
         Candidate.clear();
 	Candidate_VXBS.clear();
 	mass4l_VXBS = 0;
+	pt4l_VXBS = 0;
 	fsrmap.clear();
 	lep_pt.clear();
 	lep_ptError.clear();

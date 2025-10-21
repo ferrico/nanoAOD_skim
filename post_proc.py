@@ -83,9 +83,8 @@ def main():
         modulesToRun.extend([getEleScaleRes(2024, 2024, isMC, overwritePt=True, EtDependent=True)])
         modulesToRun.extend([getJetIdProducer(2024, "2024")])
         #modulesToRun.extend([jetIdUpdate()])
-        #modulesToRun.extend([getJetCorrected(2024, "2024", isMC, overwritePt=True)])
-        #m##odulesToRun.extend([getJetIdProducer(2024, "2024")])
-        #modulesToRun.extend([getJetVetoMap(2024, "2024")])
+        modulesToRun.extend([getJetCorrected(2024, "2024", isMC, overwritePt=True)])
+        modulesToRun.extend([getJetVetoMap(2024, "2024")])
 
     if "Summer23" in first_file or "Run2023" in first_file:
         """ 2023 run """

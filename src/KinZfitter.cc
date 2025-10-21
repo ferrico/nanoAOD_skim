@@ -463,6 +463,19 @@ double KinZfitter::GetRefitM4l()
 
 }
 
+double KinZfitter::GetRefitPt4l()
+{
+    vector<TLorentzVector> p4s = GetRefitP4s();
+
+    TLorentzVector pH(0,0,0,0);
+    for(unsigned int i = 0; i< p4s.size(); i++){
+        pH = pH + p4s[i];
+    }
+
+    return pH.Pt();
+
+}
+
 double KinZfitter::GetRefitMZ1()
 {
 

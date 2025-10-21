@@ -5,8 +5,8 @@ summary.dat
 CMSSW_10*.*
 condor_logs/
 *.jdl
-*.sh
-*.root
+#*.sh
+#*.root
 *.0
 __init__.py
 docker_stderror
@@ -146,7 +146,7 @@ br.sm1
 br.sm2
 *.dat
 *.DAT
-*.txt
+#*.txt
 *.tbl
 *.LHgrid
 *.pcm

@@ -172,11 +172,13 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("mass4lREFIT", "F")
         self.out.branch("mass4lErrREFIT", "F")
         self.out.branch("mass4l_VXBS",  "F")
+        self.out.branch("pt4l_VXBS",  "F")
         self.out.branch("massZ1REFIT", "F")
         self.out.branch("mass4lErr_VXBS", "F")
         self.out.branch("mass4lREFIT_VXBS", "F")
         self.out.branch("mass4lErrREFIT_VXBS", "F")
         self.out.branch("massZ1REFIT_VXBS", "F")
+        self.out.branch("pt4lREFIT_VXBS", "F")
         self.out.branch("GENmass4l",  "F")
         self.out.branch("mass4e",  "F")
         self.out.branch("mass4mu",  "F")
@@ -408,6 +410,7 @@ class HZZAnalysisCppProducer(Module):
         pt4l = 0
         mass4lErr = 999
         mass4l_VXBS = 0
+        pt4l_VXBS = 0
         mass4lREFIT = 0
         mass4lErrREFIT = 999
         massZ1REFIT = 0
@@ -415,6 +418,7 @@ class HZZAnalysisCppProducer(Module):
         mass4lREFIT_VXBS = 0
         mass4lErrREFIT_VXBS = 999
         massZ1REFIT_VXBS = 0
+        pt4lREFIT_VXBS = 0
         D_bkg_kin = -999
         D_bkg_VHdec = -999
         D_VBF1j = -999
@@ -774,6 +778,7 @@ class HZZAnalysisCppProducer(Module):
             massZ1REFIT = self.workerKinZ.GetRefitMZ1()
             #'''
             mass4l_VXBS = self.worker.mass4l_VXBS
+            pt4l_VXBS = self.worker.pt4l_VXBS
             #'''
             Candidate_VXBS = self.worker.Candidate_VXBS
             self.workerKinZ_VXBS.Setup(Candidate_VXBS, fsrmap, self.year)
@@ -782,6 +787,7 @@ class HZZAnalysisCppProducer(Module):
             mass4lErrREFIT_VXBS = self.workerKinZ_VXBS.GetRefitM4lErrFullCov()
             mass4lREFIT_VXBS = self.workerKinZ_VXBS.GetRefitM4l()
             massZ1REFIT_VXBS = self.workerKinZ_VXBS.GetRefitMZ1()
+            pt4lREFIT_VXBS = self.workerKinZ_VXBS.GetRefitPt4l()
             #'''
             D_bkg_kin = self.worker.D_bkg_kin;
             D_bkg_VHdec = self.worker.D_bkg_VHdec;
@@ -812,10 +818,12 @@ class HZZAnalysisCppProducer(Module):
             mass4lErrREFIT = -999
             massZ1REFIT = -999
             mass4l_VXBS = -999
+            pt4l_VXBS = -999
             mass4lErr_VXBS = -999
             mass4lREFIT_VXBS = -999
             mass4lErrREFIT_VXBS = -999
             massZ1REFIT_VXBS = -999
+            pt4lREFIT_VXBS = -999
             D_bkg_kin = -999
             D_bkg_VHdec = -999
             D_VBF1j = -999
@@ -844,10 +852,12 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("mass4lErrREFIT", mass4lErrREFIT)
         self.out.fillBranch("massZ1REFIT", massZ1REFIT)
         self.out.fillBranch("mass4l_VXBS", mass4l_VXBS)
+        self.out.fillBranch("pt4l_VXBS", pt4l_VXBS)
         self.out.fillBranch("mass4lErr_VXBS", mass4lErr_VXBS)
         self.out.fillBranch("mass4lREFIT_VXBS", mass4lREFIT_VXBS)
         self.out.fillBranch("mass4lErrREFIT_VXBS", mass4lErrREFIT_VXBS)
         self.out.fillBranch("massZ1REFIT_VXBS", massZ1REFIT_VXBS)
+        self.out.fillBranch("pt4lREFIT_VXBS", pt4lREFIT_VXBS)
         self.out.fillBranch("GENmass4l",GENmass4l)
         self.out.fillBranch("mass4e",mass4e)
         self.out.fillBranch("mass2e2mu",mass2e2mu)

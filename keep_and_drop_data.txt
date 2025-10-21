@@ -27,6 +27,7 @@ keep *jj
 keep finalState
 keep lep_*
 keep mass*
+keep pt4l*
 keep pass*
 keep D_*
 keep lep*

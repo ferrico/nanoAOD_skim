@@ -73,6 +73,7 @@ public:
 
         // result wrappers
         double GetRefitM4l();
+	double GetRefitPt4l();
         double GetM4l();
         double GetRefitMZ1();
         double GetRefitMZ2();

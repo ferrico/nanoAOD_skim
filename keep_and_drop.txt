@@ -28,6 +28,7 @@ keep finalState
 keep lep_*
 keep lepFSR*
 keep mass*
+keep pt4l*
 keep pass*
 keep GEN*
 keep Gen*
