@@ -5,7 +5,7 @@ import yaml
 import os
 from Helper import *
 ROOT.PyConfig.IgnoreCommandLineOptions = True
-
+import time
 
 class HZZAnalysisCppProducer(Module):
     def __init__(self,year,cfgFile,isMC,isFSR):
@@ -119,8 +119,8 @@ class HZZAnalysisCppProducer(Module):
         self.cfgFile = cfgFile
         self.worker.isFSR = isFSR
         print(type(self.isMC), type(self.year))
-        self.workerKinZ = ROOT.KinZfitter(bool(self.isMC), int(self.year))
-        #self.workerKinZ = ROOT.KinZfitter(self.isMC, self.year)
+        #self.workerKinZ = ROOT.KinZfitter(bool(self.isMC), int(self.year))
+        self.workerKinZ = ROOT.KinZfitter(self.isMC, self.year)
         self.workerKinZ_VXBS = ROOT.KinZfitter(self.isMC, self.year)
         pass
 
@@ -183,7 +183,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("mass4e",  "F")
         self.out.branch("mass4mu",  "F")
         self.out.branch("mass2e2mu",  "F")
-        self.out.branch("pT4l",  "F")
+        #self.out.branch("pT4l",  "F")
         self.out.branch("GENpT4l",  "F")
         self.out.branch("rapidity4l",  "F")
         self.out.branch("njets_pt30_eta4p7", "I")
@@ -359,7 +359,9 @@ class HZZAnalysisCppProducer(Module):
 #        else:
 #            print("event = " + str(event.run) + ":" + str(event.luminosityBlock) + ":" + str(event.event))
 #        print("event = " + str(event.run) + ":" + str(event.luminosityBlock) + ":" + str(event.event))
-    
+#        if(event.event != 193001):
+#            return
+#        start = time.perf_counter()
         self.worker.Initialize()
         isMC = self.isMC
         self.worker.SetObjectNum(event.nElectron,event.nMuon,event.nJet,event.nFsrPhoton)
@@ -403,7 +405,6 @@ class HZZAnalysisCppProducer(Module):
         etaZ2 = -99
         phiZ2 = -99
         massZ2 = -99
-        pT4l = -99
         eta4l = -99
         phi4l = -99
         mass4l = 0
@@ -437,6 +438,7 @@ class HZZAnalysisCppProducer(Module):
         mva_output_WH = -999
         mva_output_qqZZ = -999
         mass4l_NoFsr = 0
+        STXS = -1
         rapidity4l = -99
 
         passedTrig = PassTrig(event, self.cfgFile)
@@ -507,7 +509,7 @@ class HZZAnalysisCppProducer(Module):
             return keepIt
 
 #        print("event = " + str(event.run) + ":" + str(event.luminosityBlock) + ":" + str(event.event))
-
+#        end = time.perf_counter()
         self.worker.LeptonSelection(self.year)
 #        self.worker.BatchFsrRecovery_Run3()
         lep_pt = self.worker.lep_pt
@@ -645,6 +647,7 @@ class HZZAnalysisCppProducer(Module):
 
         lep_dataMC = []
         lep_dataMCErr = []
+        '''
         if isMC:
             for i in range(len(lep_Hindex_vec)):
                     if abs(lep_id[lep_Hindex[i]]) == 11:
@@ -656,6 +659,7 @@ class HZZAnalysisCppProducer(Module):
                     lep_dataMC.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[0])
                     lep_dataMCErr.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[1])
                     dataMCWeight = dataMCWeight * lep_dataMC[i]
+        '''
         #        print(str(lep_id[lep_Hindex[i]]) + "\t" + str(lep_pt[lep_Hindex[i]]) + "\t" + str(ETA))
         #        print(str(lep_dataMC[i])+ "\t" + str(lep_dataMCErr[i]))
         #print("---- dataMCWeight = " + str(dataMCWeight) + "number of lepton = " + str(len(lep_eta)))
@@ -728,7 +732,12 @@ class HZZAnalysisCppProducer(Module):
 
         mass4l = self.worker.ZZsystem.M()
         pt4l = self.worker.ZZsystem.Pt()
-        
+        eta4l = self.worker.ZZsystem.Eta()
+        phi4l = self.worker.ZZsystem.Phi()
+        rapidity4l = self.worker.ZZsystem.Rapidity()
+        mass4l_NoFsr = self.worker.ZZsystemnofsr.M()
+
+        '''
         if passedFullSelection: 
             pT4l = self.worker.ZZsystem.Pt()
             eta4l = self.worker.ZZsystem.Eta()
@@ -736,6 +745,7 @@ class HZZAnalysisCppProducer(Module):
             #mass4l = self.worker.ZZsystem.M()
             rapidity4l = self.worker.ZZsystem.Rapidity()
             mass4l_NoFsr = self.worker.ZZsystemnofsr.M()
+        '''
         njets_pt30_eta4p7 = self.worker.njets_pt30_eta4p7
         nBtaggedjets_pt30_eta4p7 = self.worker.nBtaggedjets_pt30_eta4p7
         if self.worker.flag4e:
@@ -745,7 +755,7 @@ class HZZAnalysisCppProducer(Module):
         if self.worker.flag4mu:
             mass4mu = mass4l
         if (self.worker.isFSR==False & passedFullSelection):
-            pT4l = self.worker.ZZsystemnofsr.Pt()
+            pt4l = self.worker.ZZsystemnofsr.Pt()
             eta4l = self.worker.ZZsystemnofsr.Eta()
             phi4l = self.worker.ZZsystemnofsr.Phi()
             mass4l = self.worker.ZZsystemnofsr.M()
@@ -759,13 +769,13 @@ class HZZAnalysisCppProducer(Module):
                 Weight = -1 * pileupWeight * dataMCWeight * prefiringWeight
         else:
             Weight = 1
-
         #if 2024 == self.year:
         #    Flag_JetVetoe = 0
         #else:
         #    Flag_JetVetoe = 999
 
         if mass4l > 0 and len(lep_ptError) > 3:
+#            print(f"sono dentro")
 #        if 1 > 2:
             Candidate = self.worker.Candidate
             fsrmap = self.worker.fsrmap
@@ -812,37 +822,6 @@ class HZZAnalysisCppProducer(Module):
             #mva_output_VBF = mva_output[1]
             #mva_output_WH = mva_output[2]
             #mva_output_qqZZ = mva_output[3]
-        else:
-            mass4lErr = -999
-            mass4lREFIT = -999
-            mass4lErrREFIT = -999
-            massZ1REFIT = -999
-            mass4l_VXBS = -999
-            pt4l_VXBS = -999
-            mass4lErr_VXBS = -999
-            mass4lREFIT_VXBS = -999
-            mass4lErrREFIT_VXBS = -999
-            massZ1REFIT_VXBS = -999
-            pt4lREFIT_VXBS = -999
-            D_bkg_kin = -999
-            D_bkg_VHdec = -999
-            D_VBF1j = -999
-            D_HadWH = -999
-            D_HadZH = -999
-            D_VBF = -999
-            STXS = -1
-            mva_Rhard = -999
-            mva_zstar= -999
-            mva_cosTheta_star = -999
-            mva_phiZZ = -999
-            mva_phi1 = -999
-            mva_theta1 = -999
-            mva_theta2 = -999
-            mva_output_ggH = -999
-            mva_output_VBF = -999
-            mva_output_WH = -999
-            mva_output_qqZZ = -999
-
         #print("--------")
         self.out.fillBranch("mass4l",mass4l)
         self.out.fillBranch("pt4l", pt4l)
@@ -862,7 +841,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("mass4e",mass4e)
         self.out.fillBranch("mass2e2mu",mass2e2mu)
         self.out.fillBranch("mass4mu",mass4mu)
-        self.out.fillBranch("pT4l",pT4l)
+        #self.out.fillBranch("pT4l",pT4l)
         self.out.fillBranch("GENpT4l",GENpT4l)
         self.out.fillBranch("rapidity4l",rapidity4l)
         self.out.fillBranch("GENrapidity4l",GENrapidity4l)
@@ -979,6 +958,7 @@ class HZZAnalysisCppProducer(Module):
         #       self.out.fillBranch("Flag_JetVetoe", Flag_JetVetoe) 
 
         #self.out.fillBranch("Flag_JetVetoe", Flag_JetVetoe)
+        '''
         self.out.fillBranch("mva_Rhard", mva_Rhard)
         self.out.fillBranch("mva_zstar", mva_zstar)
         self.out.fillBranch("mva_cosTheta_star", mva_cosTheta_star)
@@ -990,6 +970,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("mva_output_VBF", mva_output_VBF)
         self.out.fillBranch("mva_output_WH", mva_output_WH)
         self.out.fillBranch("mva_output_qqZZ", mva_output_qqZZ)
+        '''
         '''
         self.out.fillBranch("lep_timeAtIpInOut", lep_timeAtIpInOut)
         self.out.fillBranch("lep_timeAtIpInOutErr", lep_timeAtIpInOutErr)
@@ -1017,6 +998,7 @@ class HZZAnalysisCppProducer(Module):
 
 #        if(lep_pt.size() < 3):
 #            keepIt = False
+#        print(f"full: {end - start:.6f} s")
         return keepIt
 
 

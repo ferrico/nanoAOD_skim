@@ -289,9 +289,9 @@ std::vector<int> H4LTools::doFsrRecovery_Run3(std::vector<unsigned int> goodfsri
 //					std::cout<<"FILIPPO: problema con phi"<<std::endl;
 //				if(lep_pt.at(iele) < 7)
 //					std::cout<<"FILIPPO: pt < 7"<<std::endl;
-				if (!TMath::Finite(Electron_phi[Electronindex[iele]])|| !TMath::Finite(FsrPhoton_phi[goodfsridx.at(fsridx)])){
-        		                std::cout<<Electron_eta[Electronindex[iele]]<<"\t"<<Electron_phi[Electronindex[iele]]<<"\t"<<FsrPhoton_eta[goodfsridx.at(fsridx)]<<"\t"<<FsrPhoton_phi[goodfsridx.at(fsridx)]<<std::endl;
-	        	        } 
+//				if (!TMath::Finite(Electron_phi[Electronindex[iele]])|| !TMath::Finite(FsrPhoton_phi[goodfsridx.at(fsridx)])){
+//        		                std::cout<<Electron_eta[Electronindex[iele]]<<"\t"<<Electron_phi[Electronindex[iele]]<<"\t"<<FsrPhoton_eta[goodfsridx.at(fsridx)]<<"\t"<<FsrPhoton_phi[goodfsridx.at(fsridx)]<<std::endl;
+//	        	        } 
 				float DeltaR_tmp = deltaR(lep_eta.at(iele), lep_phi.at(iele), FsrPhoton_eta[goodfsridx.at(fsridx)], FsrPhoton_phi[goodfsridx.at(fsridx)]);
 //				float DeltaR_tmp = deltaR(Electron_eta[Electronindex[iele]], Electron_phi[Electronindex[iele]], FsrPhoton_eta[goodfsridx.at(fsridx)], FsrPhoton_phi[goodfsridx.at(fsridx)]);
 				if(DeltaR_tmp < deltaR_min){
@@ -312,7 +312,7 @@ std::vector<int> H4LTools::doFsrRecovery_Run3(std::vector<unsigned int> goodfsri
 //				std::cout<<"FILIPPO: Muon_eta[Muonindex[imu]] = "<<Muon_eta[Muonindex[imu]]<<"\t Muon_phi[Muonindex[imu]] = "<<Muon_phi[Muonindex[imu]]<<"\t FsrPhoton_eta[goodfsridx.at(fsridx)] = "<<FsrPhoton_eta[goodfsridx.at(fsridx)]<<"\t FsrPhoton_phi[goodfsridx.at(fsridx)] = "<<FsrPhoton_phi[goodfsridx.at(fsridx)]<<std::endl;
 //				std::cout<<"FILIPPO: imu = "<<imu<<"\tdeltaR_min = "<<deltaR_min<<"\t DeltaR_tmp = "<<DeltaR_tmp<<std::endl;
 				if(DeltaR_tmp < deltaR_min){
-//                                        std::cout<<"FILIPPO: imu = "<<imu<<"\tdeltaR_min = "<<deltaR_min<<"\t DeltaR_tmp = "<<DeltaR_tmp<<std::endl;
+  //                                      std::cout<<"FILIPPO: imu = "<<imu<<"\tdeltaR_min = "<<deltaR_min<<"\t DeltaR_tmp = "<<DeltaR_tmp<<std::endl;
 					deltaR_min = DeltaR_tmp;
 					flavour = 13;
 					lepton_index = imu;
@@ -811,6 +811,7 @@ void H4LTools::LeptonSelection(int year){
 
     std::vector<int> FsrIdx;
     FsrIdx = doFsrRecovery_Run3(goodFsrPhotons(),0,0);
+
     int flavour_fsr = 999;
     int lepton_index = 999;
     int fsr_index = 999;
@@ -1150,6 +1151,7 @@ void H4LTools::LeptonSelection(int year){
             Lepointer++;
         }
     }
+
 }
 bool H4LTools::findZCandidate(){
     
@@ -1992,8 +1994,8 @@ auto tA = std::chrono::high_resolution_clock::now();
 	int idL2 = lep_id[lep_Hindex[1]];
 	int idL3 = lep_id[lep_Hindex[2]];
 	int idL4 = lep_id[lep_Hindex[3]];
-	float mass4l = massL4;
-	float mass4l_vtxFSR_BS = massL4;
+	float mass4l = massZZ;
+	float mass4l_vtxFSR_BS = mass4l_VXBS;
 	float cosTheta1, cosTheta2, cosThetaStar, Phi, Phi1;
 	cosTheta1=9999.0; cosTheta2=9999.0; cosThetaStar=9999.0; Phi=9999.0; Phi1=9999.0;
     float p_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal;
@@ -2209,7 +2211,7 @@ auto tA = std::chrono::high_resolution_clock::now();
 
 
                         // D_bkg_VHdec
-                        float DbkgVHdecConstant = getDbkgVHdecConstant(idL1*idL2*idL3*idL3,mass4l);
+                        float DbkgVHdecConstant = getDbkgVHdecConstant(idL1*idL2*idL3*idL4,mass4l);
 
                         vbf = p_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal/pConst_JJVBF_S_SIG_ghv1_1_MCFM_JECNominal;
                         zh = p_HadZH_S_SIG_ghz1_1_MCFM_JECNominal/pConst_HadZH_S_SIG_ghz1_1_MCFM_JECNominal;
@@ -2239,7 +2241,7 @@ auto tA = std::chrono::high_resolution_clock::now();
                         PA = (vbf + zh + wh)*constA;
                         PB = (vbs + zzz + wzz + qcdzz)*constB;
 
-                        D_bkg_VHdec = PA/(PA+DbkgVHdecConstant*PB);
+			D_bkg_VHdec = PA/(PA+DbkgVHdecConstant*PB);
 
 
                         /* OLD BUT WORKING
@@ -2287,7 +2289,8 @@ auto tA = std::chrono::high_resolution_clock::now();
                         mela->setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JQCD);
                         mela->computeProdP(p_JQCD_SIG_ghv1_1_JHUGen_JECNominal,true);
 
-                        D_VBF1j = 1./(1.+ getDVBF1jetConstant(mass4l)*p_JQCD_SIG_ghv1_1_JHUGen_JECNominal/(p_JVBF_SIG_ghv1_1_JHUGen_JECNominal*pAux_JVBF_SIG_ghv1_1_JHUGen_JECNominal));
+			D_VBF1j = 1./(1.+ getDVBF1jetConstant(mass4l)*p_JQCD_SIG_ghv1_1_JHUGen_JECNominal/(p_JVBF_SIG_ghv1_1_JHUGen_JECNominal*pAux_JVBF_SIG_ghv1_1_JHUGen_JECNominal));
+
 
                         /*
                         mela->setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
@@ -2736,25 +2739,36 @@ auto t0 = std::chrono::high_resolution_clock::now();
 int H4LTools::recoSTXS(){
 	
 	int stxs = -1;
+	int tightLep = 0;
 
+	float D_VH = D_HadWH;
+	if(D_HadZH > D_VH)
+		D_VH = D_HadZH;
+
+	for(int l = 0; l < lep_pt.size(); l++)
+		if(lep_tightId.at(l))
+			tightLep++;
+
+	//int NLEP = lep_pt.size();
+	int NLEP = tightLep;
 	// STXS Stage 1.0 //
-	if(lep_pt.size() == 4 && D_VBF > 0.5 && \
+	if(NLEP == 4 && D_VBF > 0.5 && \
             (((njets_pt30_eta4p7 == 2 || njets_pt30_eta4p7 == 3) && nBtaggedjets_pt30_eta4p7 < 2) || \
             (njets_pt30_eta4p7 == 4 && nBtaggedjets_pt30_eta4p7 == 0))) stxs = 3; // 2jet-tagged
 	else{
-		if(lep_pt.size() == 4 && D_bkg_VHdec > 0.5 && \
+		if(NLEP == 4 && D_VH > 0.5 && \
 	            (njets_pt30_eta4p7 == 2 || njets_pt30_eta4p7 == 3 || \
         	    (njets_pt30_eta4p7 == 4 && nBtaggedjets_pt30_eta4p7 == 0))) stxs = 4; // VH-hadronic
 		else{
-			if((lep_pt.size() == 5 && njets_pt30_eta4p7 == 0) || \
+			if((NLEP == 5 && njets_pt30_eta4p7 == 0) || \
 		            (njets_pt30_eta4p7 < 4 && nBtaggedjets_pt30_eta4p7 == 0 && lep_pt.size() == 5)) stxs = 5; // VH-leptonic
 			else{
-				if(lep_pt.size() == 4 && \
+				if(NLEP == 4 && \
 			            njets_pt30_eta4p7 > 3 && nBtaggedjets_pt30_eta4p7 > 1) stxs = 7; // ttH-hadronic
 				else{
-					if(lep_pt.size() > 4) stxs = 6; // tH-leptonic
+					if(NLEP > 4) stxs = 6; // tH-leptonic
 					else{
-						if(lep_pt.size() == 4 && D_VBF1j > 0.7 && \
+						if(NLEP == 4 && D_VBF1j > 0.7 && \
 					            njets_pt30_eta4p7 == 1) stxs = 2; // 1jet
 						else{
 							stxs = 1; // untagged;
@@ -2793,27 +2807,28 @@ int H4LTools::recoSTXS(){
 			else stxs = -1;
 		}
 	}
-	if(stxs == 2) stxs = 111;
+	if(stxs == 2) stxs = 211;
 	
 	if(stxs == 3){
-		if(pt4l < 200 && ptjj < 25 && mjj > 350 && mjj < 700) stxs = 112;
-		else if(pt4l < 200 && ptjj < 25 && mjj > 700) stxs = 113;
-		else if(pt4l < 200 && ptjj > 25 && mjj > 350) stxs = 114;
-		else stxs = 116;
+		if(pt4l < 200 && ptjj < 25 && mjj > 350 && mjj < 700) stxs = 312;
+		else if(pt4l < 200 && ptjj < 25 && mjj > 700) stxs = 313;
+		else if(pt4l < 200 && ptjj > 25 && mjj > 350) stxs = 314;
+		else if(pt4l > 200 && mjj > 350) stxs = 315;
+		else stxs = 316;
 	}
 	
 	if(stxs == 4){
-		if(mjj > 60 && mjj < 120) stxs = 117;
-		else stxs = 118;
+		if(mjj > 60 && mjj < 120) stxs = 417;
+		else stxs = 418;
 	}
 
 	if(stxs == 5){
-		if(pt4l < 150) stxs = 119;
-		else stxs = 120;
+		if(pt4l < 150) stxs = 519;
+		else stxs = 520;
 	}
 
-	if(stxs == 6) stxs = 121;
-	if(stxs == 7) stxs = 122;
+	if(stxs == 6) stxs = 621;
+	if(stxs == 7) stxs = 722;
 
 	return stxs;
 
