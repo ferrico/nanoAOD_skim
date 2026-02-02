@@ -145,7 +145,8 @@ std::vector<bool> H4LTools::passTight_Id(){
 //            tightid.push_back(Muon_isPFcand[i]);
 //		std::cout<<Muon_mva[i]<<std::endl;
 		 // MVA - filippo
-		if(Muon_mva[i] > -0.6){
+// OK for Run3		if(Muon_mva[i] > -0.6){
+		if(Muon_mva[i] > 0.15){ // test for PN Mu ID
 			tightid.push_back(true);
 //			std::cout<<"true\t"<<Muon_mva[i]<<std::endl;
 		}
@@ -1765,8 +1766,8 @@ bool H4LTools::ZZSelection(){
 	   ptjj = (Jet1 + Jet2).Pt();
 	   etajj = (Jet1 + Jet2).Eta();
 	   phijj = (Jet1 + Jet2).Phi();
-	   Detajj = (Jet1 - Jet2).Eta();
-	   Dphijj = (Jet1 - Jet2).Phi();
+	   Detajj = fabs((Jet1 - Jet2).Eta());
+	   Dphijj = fabs((Jet1 - Jet2).Phi());
 //	   std::cout<<"mjj = "<<mjj<<"\t etajj = "<<etajj<<std::endl;
            if(Jet1.Rapidity() - Jet2.Rapidity() == 0){
 		   for(int j = 0; j < jetidx.size(); j++)
@@ -2581,9 +2582,9 @@ bool H4LTools::ZXdistributions(){
 
 std::vector< float> H4LTools::leptonsWeight(int year, int id, float pt, float eta, bool isCrack){
 auto t0 = std::chrono::high_resolution_clock::now();
-          TString basePath = Form("$CMSSW_BASE/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/data/");
-          TString f_eleID, f_eleID_Cracks, f_eleReco_lowPt, f_eleReco_midPt, f_eleReco_highPt; // filenames
-          TString f_mu;
+//          TString basePath = Form("$CMSSW_BASE/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/data/");
+//          TString f_eleID, f_eleID_Cracks, f_eleReco_lowPt, f_eleReco_midPt, f_eleReco_highPt; // filenames
+//          TString f_mu;
         float RecoSF = 1.0;
         float SelSF = 1.0;
         float SF = 1.0;
@@ -2592,29 +2593,29 @@ auto t0 = std::chrono::high_resolution_clock::now();
         float SelSF_Unc = 0.0;
         float SFError = 0.0;
 
-	  TH2F *h_Ele_ID;
-	  TH2F *h_Ele_ID_Cracks;
-	  TH2F *h_Ele_Reco_lowPt;
-	  TH2F *h_Ele_Reco_midPt;
-	  TH2F *h_Ele_Reco_highPt;
-	  TH2D *h_Mu_SF;
-	  TH2D *h_Mu_Unc;
+//	  TH2F *h_Ele_ID;
+//	  TH2F *h_Ele_ID_Cracks;
+//	  TH2F *h_Ele_Reco_lowPt;
+//	  TH2F *h_Ele_Reco_midPt;
+//	  TH2F *h_Ele_Reco_highPt;
+//	  TH2D *h_Mu_SF;
+//	  TH2D *h_Mu_Unc;
 
 	  std::vector< float > tmp;
-
+/*
           if (year == 20220){
                   f_eleID           = basePath+"SF2022eleID_preEE.root";
                   f_eleReco_highPt  = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2022preEE.root";
                   f_eleReco_midPt   = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2022preEE.root";
                   f_eleReco_lowPt   = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2022preEE.root";
-                  f_mu = basePath+"final_HZZ_SF_Run3_2022_mupogsysts_newLoose_abseta3_fix_BCD.root";
+                  f_mu = basePath+"MuonSF_MVA_20220.root";
           }
           else if(year == 20225){
                   f_eleID           = basePath+"SF2022eleID_postEE.root";
                   f_eleReco_highPt  = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2022postEE.root";
                   f_eleReco_midPt   = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2022postEE.root";
                   f_eleReco_lowPt   = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2022postEE.root";
-                  f_mu = basePath+"final_HZZ_SF_Run3_2022_mupogsysts_newLoose_abseta3_fix_EFG.root";
+                  f_mu = basePath+"MuonSF_MVA_20225.root";
           }
           else if(year == 20230){
                   //std::cout<<"WARNING 2023 postBPix Electron ID SFs - for now using 2022postEE"<<std::endl;
@@ -2637,8 +2638,8 @@ auto t0 = std::chrono::high_resolution_clock::now();
                   f_eleID          = basePath+"SF2024eleID.root";
                   f_eleReco_highPt = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/highPt/egammaEffi.txt_EGM2D.root";
                   f_eleReco_midPt  = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/midPt/egammaEffi.txt_EGM2D.root";
-                  f_eleReco_lowPt  = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2023postBPix.root";
-                  f_mu = basePath+"HZZ_HZZ_SF_2024_RMS_mupogsystsC.root";
+                  f_eleReco_lowPt  = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/lowPt/egammaEffi.txt_EGM2D.root";
+                  f_mu = basePath+"MuonSF_MVA_2024.root";
           }
           else{
                 //std::cout<<"Wrong year for SF\t"<<year<<std::endl;
@@ -2646,8 +2647,9 @@ auto t0 = std::chrono::high_resolution_clock::now();
         	tmp.push_back(SFError);
 		return tmp;
           }
-	
+*/	
 	if(abs(id) == 11) {
+		/*
 		TFile* root_file = TFile::Open(f_eleID.Data(),"READ");
 		h_Ele_ID = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_ID");
 		h_Ele_ID->SetDirectory(nullptr); // This is required to detach the clone from the file
@@ -2676,7 +2678,7 @@ auto t0 = std::chrono::high_resolution_clock::now();
 			h_Ele_Reco_midPt->SetDirectory(nullptr);
 			root_file->Close();
 		}
-
+		*/
 		if(pt < 20.) {
 			RecoSF     = h_Ele_Reco_lowPt->GetBinContent(h_Ele_Reco_lowPt->GetXaxis()->FindBin(eta),h_Ele_Reco_lowPt->GetYaxis()->FindBin(15.));// FIXME: the histogram contains 1 pt bin only
 			RecoSF_Unc = h_Ele_Reco_lowPt->GetBinError  (h_Ele_Reco_lowPt->GetXaxis()->FindBin(eta),h_Ele_Reco_lowPt->GetYaxis()->FindBin(15.));
@@ -2707,12 +2709,14 @@ auto t0 = std::chrono::high_resolution_clock::now();
                 }
 	}
 	else{
+		/*
 		TFile* root_file = TFile::Open(f_mu.Data(),"READ");
 		h_Mu_SF  = (TH2D*)root_file->Get("FINAL")->Clone("h_Mu_SF");
 		h_Mu_Unc = (TH2D*)root_file->Get("ERROR")->Clone("h_Mu_Unc");
 		h_Mu_SF->SetDirectory(nullptr);
 		h_Mu_Unc->SetDirectory(nullptr);
 		root_file->Close();
+		*/
 		//last bin contains the overflow
 		if(pt > 5.){
 			SelSF = h_Mu_SF->GetBinContent(h_Mu_SF->GetXaxis()->FindBin(eta),h_Mu_SF->GetYaxis()->FindBin(std::min(pt,199.f)));

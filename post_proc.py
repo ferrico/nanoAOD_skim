@@ -13,6 +13,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 impor
 from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import btagSFProducer
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.jetIdUpdate import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.GetbJetSF import *
 
 # Custom module imports
 #from H4Lmodule import *
@@ -85,6 +86,7 @@ def main():
         #modulesToRun.extend([jetIdUpdate()])
         modulesToRun.extend([getJetCorrected(2024, "2024", isMC, overwritePt=True)])
         modulesToRun.extend([getJetVetoMap(2024, "2024")])
+        modulesToRun.extend([GetbJetSF(2024, "2024", isMC)])
 
     if "Summer23" in first_file or "Run2023" in first_file:
         """ 2023 run """
@@ -99,6 +101,7 @@ def main():
             modulesToRun.extend([getJetCorrected(year, "BPix", isMC, overwritePt=True)])
             #modulesToRun.extend([getJetIdProducer(year, "BPix")])
             modulesToRun.extend([getJetVetoMap(year, "BPix")])
+            modulesToRun.extend([GetbJetSF(2023, "20235", isMC)])
         else:
             year_tag = 20230
             cfgFile = "Input_20230.yml"
@@ -107,10 +110,10 @@ def main():
             modulesToRun.extend([getJetCorrected(year, "", isMC, overwritePt=True)])
             #modulesToRun.extend([getJetIdProducer(year, "")])
             modulesToRun.extend([getJetVetoMap(year, "")])
+            modulesToRun.extend([GetbJetSF(2023, "20230", isMC)])
 
     if "Summer22" in first_file or "Run2022" in first_file:
-        """Summer22 and Run2022 for identification of 2022 MC and data respectiverly
-        """
+        """Summer22 and Run2022 for identification of 2022 MC and data respectiverly"""
         year = 2022
         jsonFileName = "golden_Json/Cert_Collisions2022_355100_362760_Golden.json"
         sfFileName = "DeepCSV_102XSF_V2.csv" # FIXME: Update for year 2022
@@ -122,18 +125,20 @@ def main():
             if "Run2022F" in first_file: jet_tag = "2022F"
             if "Run2022G" in first_file: jet_tag = "2022G"
             modulesToRun.extend([getMuonScaleRes(year, "EE", isMC, overwritePt=True)]) 
-            modulesToRun.extend([getEleScaleRes(year, year_tag, isMC, overwritePt=True, EtDependent=False)])
+            modulesToRun.extend([getEleScaleRes(year, year_tag, isMC, overwritePt=True, EtDependent=True)])
             modulesToRun.extend([getJetCorrected(year, jet_tag, isMC, overwritePt=True)])
             #modulesToRun.extend([getJetIdProducer(year, "EE")])
             modulesToRun.extend([getJetVetoMap(year, "EE")])
+            modulesToRun.extend([GetbJetSF(2022, "20225", isMC)])
         else:
             year_tag = 20220
             cfgFile = "Input_20220.yml"
             modulesToRun.extend([getMuonScaleRes(year, "", isMC, overwritePt=True)]) 
-            modulesToRun.extend([getEleScaleRes(year, year_tag, isMC, overwritePt=True, EtDependent=False)])
+            modulesToRun.extend([getEleScaleRes(year, year_tag, isMC, overwritePt=True, EtDependent=True)])
             modulesToRun.extend([getJetCorrected(year, "", isMC, overwritePt=True)])
             #modulesToRun.extend([getJetIdProducer(year, "")])
             modulesToRun.extend([getJetVetoMap(year, "")])
+            modulesToRun.extend([GetbJetSF(2022, "20220", isMC)])
 
     print("Input json file: {}".format(jsonFileName))
     print("Input cfg file: {}".format(cfgFile))
@@ -166,12 +171,12 @@ def main():
                 modulesToRun.extend([puWeight(2023, "")])
             else:
                 modulesToRun.extend([puWeight(2023, "pre_BPix")])
-        #if year == 2024:
-        #        modulesToRun.extend([puWeight(2024, "")]) ----> aggiorna in Input_2024 i root file
+        if year == 2024:
+                modulesToRun.extend([puWeight(2024, "")])
 
         # INFO: Keep the `fwkJobReport=False` to trigger `haddnano.py`
         #            otherwise the output file will have larger size then expected. Reference: https://github.com/cms-nanoAOD/nanoAOD-tools/issues/249
-        p=PostProcessor(".",testfilelist, None, None,modules = modulesToRun, provenance=True,fwkJobReport=True,haddFileName="skimmed_nano.root", maxEntries=entriesToRun, prefetch=DownloadFileToLocalThenRun, outputbranchsel="keep_and_drop.txt")
+        p=PostProcessor(".",testfilelist, None, None,modules = modulesToRun, provenance=True,fwkJobReport=False,haddFileName="skimmed_nano.root", maxEntries=entriesToRun, prefetch=DownloadFileToLocalThenRun, outputbranchsel="keep_and_drop.txt")
     else:
         #if (not args.NOsyst):
             # FIXME: JES not used properly

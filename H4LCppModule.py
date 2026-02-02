@@ -37,6 +37,7 @@ class HZZAnalysisCppProducer(Module):
                 #ROOT.gSystem.Load("libPhysicsToolsNanoAODToolsH4LTools.so")
                 ROOT.gROOT.ProcessLine(
                     ".L %s/interface/GenAnalysis.h" % base)
+
         if "/H4LTools_cc.so" not in ROOT.gSystem.GetLibraries():
             print("Load H4LTools C++ module")
             base = "$CMSSW_BASE/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim"
@@ -62,7 +63,7 @@ class HZZAnalysisCppProducer(Module):
                 #ROOT.gSystem.Load("libPhysicsToolsNanoAODToolsH4LTools.so")
                 ROOT.gROOT.ProcessLine(
                     ".L %s/interface/HelperFunction.h" % base)
-
+        #'''
         if "/KinZfitter_cc.so" not in ROOT.gSystem.GetLibraries():
             print("Load KinZfitter C++ module")
             base = "$CMSSW_BASE/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim"
@@ -75,26 +76,13 @@ class HZZAnalysisCppProducer(Module):
                 #ROOT.gSystem.Load("libPhysicsToolsNanoAODToolsH4LTools.so")
                 ROOT.gROOT.ProcessLine(
                     ".L %s/interface/KinZfitter.h" % base)
-        '''
-        if "/HelperFunction_cc.so" not in ROOT.gSystem.GetLibraries():
-            print("Load HelperFunction C++ module")
-            base = "$CMSSW_BASE/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim"
-            if base:
-                ROOT.gROOT.ProcessLine(
-                    ".L %s/src/HelperFunction.cc+O" % base)
-            else:
-                base = "$CMSSW_BASE//src/PhysicsTools/NanoAODTools"
-                ROOT.gSystem.Load("libPhysicsToolsNanoAODTools.so")
-                #ROOT.gSystem.Load("libPhysicsToolsNanoAODToolsH4LTools.so")
-                ROOT.gROOT.ProcessLine(
-                    ".L %s/interface/HelperFunction.h" % base)
-        '''
+        #'''
 
         self.year = year
         self.isMC = isMC
         self.genworker = ROOT.GenAnalysis()
         self.mcWeight = 0
-        
+
         with open(cfgFile, 'r') as ymlfile:
           cfg = yaml.safe_load(ymlfile)
           self.worker = ROOT.H4LTools(self.year,self.isMC)
@@ -106,20 +94,19 @@ class HZZAnalysisCppProducer(Module):
           self.worker.InitializeFsrPhotonCut(cfg['FsrPhoton']['pTcut'],cfg['FsrPhoton']['Etacut'],cfg['FsrPhoton']['Isocut'],cfg['FsrPhoton']['dRlcut'],cfg['FsrPhoton']['dRlOverPtcut'])
           self.worker.InitializeJetcut(cfg['Jet']['pTcut'],cfg['Jet']['Etacut'],cfg['Jet']['bTagcut'])
           self.worker.InitializeEvtCut(cfg['MZ1cut'],cfg['MZZcut'],cfg['Higgscut']['down'],cfg['Higgscut']['up'],cfg['Zmass'],cfg['MZcut']['down'],cfg['MZcut']['up'])
-          self.PUweightfile = cfg["outputdataNPV"]
-          self.PUweighthisto = cfg["PUweightHistoName"]
-        PUinput_file = ROOT.TFile.Open(self.PUweightfile)
-        PUinput_hist = PUinput_file.Get(self.PUweighthisto)
-        self.PUweight_list = []
-        for i in range(1, PUinput_hist.GetNbinsX() + 1):
-            self.PUweight_list.append(PUinput_hist.GetBinContent(i))
-        PUinput_file.Close()
+          #self.PUweightfile = cfg["outputdataNPV"]
+          #self.PUweighthisto = cfg["PUweightHistoName"]
+
+        #PUinput_file = ROOT.TFile.Open(self.PUweightfile)
+        #PUinput_hist = PUinput_file.Get(self.PUweighthisto)
+        #self.PUweight_list = []
+        #for i in range(1, PUinput_hist.GetNbinsX() + 1):
+        #    self.PUweight_list.append(PUinput_hist.GetBinContent(i))
+        #PUinput_file.Close()
         self.passtrigEvts = 0
         self.passZZEvts = 0
         self.cfgFile = cfgFile
         self.worker.isFSR = isFSR
-        print(type(self.isMC), type(self.year))
-        #self.workerKinZ = ROOT.KinZfitter(bool(self.isMC), int(self.year))
         self.workerKinZ = ROOT.KinZfitter(self.isMC, self.year)
         self.workerKinZ_VXBS = ROOT.KinZfitter(self.isMC, self.year)
         pass
@@ -164,6 +151,9 @@ class HZZAnalysisCppProducer(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.initReaders(inputTree)  # initReaders must be called in beginFile
+        #inputTree.SetCacheSize(400 * 1024 * 1024)
+        #inputTree.AddBranchToCache("*")
+        #inputTree.StopCacheLearningPhase()
         self.out = wrappedOutputTree
         self.out.branch("mass4l",  "F")
         self.out.branch("pt4l", "F")
@@ -240,7 +230,6 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("Dphijj", "F")
         self.out.branch("EvtNum",  "I")
         self.out.branch("Weight",  "F")
-        #self.out.branch("pileupWeight",  "F")
         self.out.branch("prefiringWeight",  "F")
         self.out.branch("passedTrig",  "O")
         self.out.branch("passedFullSelection",  "O")
@@ -298,6 +287,7 @@ class HZZAnalysisCppProducer(Module):
         #    self.out.branch("Flag_JetVetoe", "O", title="Event veto flag from Jet Veto Map")
 
         #self.out.branch("Flag_JetVetoe", "O", title="Event veto flag from Jet Veto Map")
+        '''
         self.out.branch("mva_Rhard", "F")
         self.out.branch("mva_zstar", "F")
         self.out.branch("mva_cosTheta_star", "F")
@@ -309,6 +299,7 @@ class HZZAnalysisCppProducer(Module):
         self.out.branch("mva_output_VBF", "F")
         self.out.branch("mva_output_WH", "F")
         self.out.branch("mva_output_qqZZ", "F")
+        '''
         '''
         self.out.branch("lep_timeAtIpInOut", "F", lenVar = "len(lep_pt)")
         self.out.branch("lep_timeAtIpInOutErr", "F", lenVar = "len(lep_pt)")
@@ -362,9 +353,22 @@ class HZZAnalysisCppProducer(Module):
 #        if(event.event != 193001):
 #            return
 #        start = time.perf_counter()
+
         self.worker.Initialize()
         isMC = self.isMC
         self.worker.SetObjectNum(event.nElectron,event.nMuon,event.nJet,event.nFsrPhoton)
+
+        #new FILIPPO
+        if(event.nElectron + event.nMuon < 2):
+            if isMC:
+                if event.genWeight > 0:
+                            self.mcWeight = self.mcWeight + 1
+                else:
+                            self.mcWeight = self.mcWeight - 1
+            keepIt = False
+            return keepIt
+        #new FILIPPO
+
         if isMC:
             self.worker.SetObjectNumGen(event.nGenPart)
             self.genworker.Initialize()
@@ -385,7 +389,6 @@ class HZZAnalysisCppProducer(Module):
         nZXCRFailedLeptons=0
         prefiringWeight = 1
         dataMCWeight = 1
-        pileupWeight = 1
         mass4e=0
         mass2e2mu=0
         mass4mu=0
@@ -441,13 +444,13 @@ class HZZAnalysisCppProducer(Module):
         STXS = -1
         rapidity4l = -99
 
+        #return True
+
         passedTrig = PassTrig(event, self.cfgFile)
         if (passedTrig==True):
             self.passtrigEvts += 1
 #        else:
 #            return keepIt
-#        if(isMC):
-#            pileupWeight = self.PUweight_list[event.Pileup_nPU]
         electrons = Collection(event, "Electron")
         lowEle = Collection(event, "LowPtElectron")
         muons = Collection(event, "Muon")
@@ -466,6 +469,8 @@ class HZZAnalysisCppProducer(Module):
                 self.worker.SetMuonsGen(xm.genPartIdx)
             for xe in electrons:
                 self.worker.SetElectronsGen(xe.genPartIdx)
+
+
         for xe in electrons:
                 self.worker.SetElectrons(xe.pt, xe.eta, xe.phi, xe.mass, xe.dxy,
                                     xe.dz, xe.sip3d, xe.mvaHZZIso, xe.pdgId, xe.charge, xe.pfRelIso03_all, xe.uncorrected_pt, xe.energyErr, xe.deltaEtaSC)
@@ -477,7 +482,12 @@ class HZZAnalysisCppProducer(Module):
         for xm in muons:
             self.worker.SetMuons(xm.pt, xm.eta, xm.phi, xm.mass, xm.isGlobal, xm.isTracker,
                                 xm.dxy, xm.dz, xm.sip3d, xm.ptErr, xm.nTrackerLayers, xm.isPFcand,
-                                xm.pdgId, xm.charge, xm.pfRelIso03_all, xm.pfRelIso03_chg, xm.mvaLowPt, xm.nStations, xm.isStandalone, xm.bsConstrainedPt, xm.bsConstrainedPtErr, xm.inTimeMuon
+######## OK FOR Run3                                
+xm.pdgId, xm.charge, xm.pfRelIso03_all, xm.pfRelIso03_chg, xm.mvaLowPt, xm.nStations, xm.isStandalone, xm.bsConstrainedPt, xm.bsConstrainedPtErr, xm.inTimeMuon
+
+##### Test for PN muon ID
+#xm.pdgId, xm.charge, xm.pfRelIso03_all, xm.pfRelIso03_chg, xm.pnScore_prompt, xm.nStations, xm.isStandalone, xm.bsConstrainedPt, xm.bsConstrainedPtErr, xm.inTimeMuon
+##### Test for PN muon ID
                                 )
 
 ##### for muon time information ---> need to add branches from miniaod
@@ -494,10 +504,11 @@ class HZZAnalysisCppProducer(Module):
                 self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass, xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagUParTAK4B)
                 self.worker.SetJetsMultiplicity(xj.chMultiplicity, xj.neMultiplicity, xj.chHEF)
             else:
-                self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagDeepFlavB)
+                self.worker.SetJets(xj.pt,xj.eta,xj.phi,xj.mass,xj.jetId, xj.neHEF, xj.neEmEF, xj.muEF, xj.chEmEF, xj.btagPNetB)
+
 
 #        self.worker.BatchFsrRecovery_Run3()
-
+        ''' new FILIPPO
         if(event.nElectron + event.nMuon < 2):
             if isMC:
                 if event.genWeight > 0:
@@ -507,6 +518,9 @@ class HZZAnalysisCppProducer(Module):
 #            if not isMC:
             keepIt = False
             return keepIt
+        ''' #new FILIPPO
+
+
 
 #        print("event = " + str(event.run) + ":" + str(event.luminosityBlock) + ":" + str(event.event))
 #        end = time.perf_counter()
@@ -566,10 +580,9 @@ class HZZAnalysisCppProducer(Module):
             GENrapidity4l = self.genworker.GENrapidity4l
             GENnjets_pt30_eta4p7 = self.genworker.GENnjets_pt30_eta4p7
             nGENLeptons = self.genworker.nGENLeptons
-
         
-        passedFiducialSelection = self.genworker.passedFiducialSelection
-
+        #passedFiducialSelection = self.genworker.passedFiducialSelection
+        
 #        Electron_Fsr_pt_vec = self.worker.ElectronFsrPt()
 #        Electron_Fsr_eta_vec = self.worker.ElectronFsrEta()
 #        Electron_Fsr_phi_vec = self.worker.ElectronFsrPhi()
@@ -647,7 +660,7 @@ class HZZAnalysisCppProducer(Module):
 
         lep_dataMC = []
         lep_dataMCErr = []
-        '''
+        #'''
         if isMC:
             for i in range(len(lep_Hindex_vec)):
                     if abs(lep_id[lep_Hindex[i]]) == 11:
@@ -659,7 +672,7 @@ class HZZAnalysisCppProducer(Module):
                     lep_dataMC.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[0])
                     lep_dataMCErr.append(self.worker.leptonsWeight(self.year, lep_id[lep_Hindex[i]], lep_pt[lep_Hindex[i]], abs(ETA), 0)[1])
                     dataMCWeight = dataMCWeight * lep_dataMC[i]
-        '''
+        #'''
         #        print(str(lep_id[lep_Hindex[i]]) + "\t" + str(lep_pt[lep_Hindex[i]]) + "\t" + str(ETA))
         #        print(str(lep_dataMC[i])+ "\t" + str(lep_dataMCErr[i]))
         #print("---- dataMCWeight = " + str(dataMCWeight) + "number of lepton = " + str(len(lep_eta)))
@@ -763,10 +776,10 @@ class HZZAnalysisCppProducer(Module):
         if isMC:
             if event.genWeight > 0:
                 self.mcWeight = self.mcWeight + 1
-                Weight = pileupWeight * dataMCWeight * prefiringWeight
+                Weight = dataMCWeight * prefiringWeight
             else:
                 self.mcWeight = self.mcWeight - 1
-                Weight = -1 * pileupWeight * dataMCWeight * prefiringWeight
+                Weight = -1 * dataMCWeight * prefiringWeight
         else:
             Weight = 1
         #if 2024 == self.year:
@@ -775,8 +788,6 @@ class HZZAnalysisCppProducer(Module):
         #    Flag_JetVetoe = 999
 
         if mass4l > 0 and len(lep_ptError) > 3:
-#            print(f"sono dentro")
-#        if 1 > 2:
             Candidate = self.worker.Candidate
             fsrmap = self.worker.fsrmap
             #'''
@@ -808,6 +819,7 @@ class HZZAnalysisCppProducer(Module):
 
             STXS = self.worker.recoSTXS()
 
+            '''
             mva_Rhard = self.worker.mva_Rhard
             mva_zstar = self.worker.mva_zstar
             mva_cosTheta_star = self.worker.mva_cosTheta_star
@@ -817,12 +829,14 @@ class HZZAnalysisCppProducer(Module):
             mva_theta2 = self.worker.mva_theta2
 
             mva_output = []
+            '''
             #mva_output = self.worker.mvaEstimation("/afs/cern.ch/work/f/ferrico/private/HZZ_Run3_LXP9/CMSSW_14_0_2/src/tmva/dataset/weights/TMVAMulticlass_BDTG.weights.xml")
             #mva_output_ggH = mva_output[0]
             #mva_output_VBF = mva_output[1]
             #mva_output_WH = mva_output[2]
             #mva_output_qqZZ = mva_output[3]
         #print("--------")
+
         self.out.fillBranch("mass4l",mass4l)
         self.out.fillBranch("pt4l", pt4l)
         self.out.fillBranch("mass4l_NoFsr", mass4l_NoFsr)
@@ -925,7 +939,6 @@ class HZZAnalysisCppProducer(Module):
         self.out.fillBranch("phijj",phijj)
         self.out.fillBranch("Detajj",Detajj)
         self.out.fillBranch("Dphijj",Dphijj)
-        #self.out.fillBranch("pileupWeight",pileupWeight)
         self.out.fillBranch("prefiringWeight",prefiringWeight)
         self.out.fillBranch("Weight",Weight)
         # self.out.fillBranch("nElectron_Fsr", len(electrons))

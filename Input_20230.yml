@@ -118,8 +118,8 @@ Jet:
     30
   Etacut:
     4.7
-  bTagcut: #### medium WP for 2023 deepJet
-    0.2431 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
+  bTagcut: #### medium WP for 2023 particleNet
+    0.1917 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
 
 inputdataNPV:
   "data/pileupHistogram-Cert_Collisions2023_366442_370790_GoldenJson-13p6TeV-69200ub-99bins.root"

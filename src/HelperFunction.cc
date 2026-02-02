@@ -105,12 +105,11 @@ HelperFunction::HelperFunction(int year, bool isData)
         std::cout<<"ABCDE ---------- LUT directory = "<<directory_name<<std::endl;
         std::cout<<" ---------------------------------------------------------- "<<std::endl;
         std::cout<<" ---------------------------------------------------------- "<<std::endl;
-        TString s_corr_e_1 = TString(edm::FileInPath (directory_name + "LUT_2e_1.root").fullPath());
+        /*
+	TString s_corr_e_1 = TString(edm::FileInPath (directory_name + "LUT_2e_1.root").fullPath());
         TString s_corr_e_2 = TString(edm::FileInPath (directory_name + "LUT_2e_1.root").fullPath());
         TString s_corr_e_3 = TString(edm::FileInPath (directory_name + "LUT_2e_3.root").fullPath());
         TString s_corr_mu = TString(edm::FileInPath (directory_name + "LUT_2mu.root" ).fullPath());
-
-
 
         f_corr_e_1 = boost::shared_ptr<TFile>( new TFile(s_corr_e_1));
         f_corr_e_2 = boost::shared_ptr<TFile>( new TFile(s_corr_e_2)); 
@@ -133,7 +132,40 @@ HelperFunction::HelperFunction(int year, bool isData)
 
         x_mupTaxis = mu_corr->GetXaxis(); y_muetaaxis = mu_corr->GetYaxis();
         maxPtMu = x_mupTaxis->GetXmax(); minPtMu = x_mupTaxis->GetXmin();
+	*/
 
+	const std::string base = directory_name.Data();
+	
+	const std::string s_corr_e_1 = edm::FileInPath(base + "LUT_2e_1.root").fullPath();
+	const std::string s_corr_e_3 = edm::FileInPath(base + "LUT_2e_3.root").fullPath();
+	const std::string s_corr_mu = edm::FileInPath(base + "LUT_2mu.root").fullPath();
+
+	TFile f_corr_e1(s_corr_e_1.c_str(), "READ");
+	TFile f_corr_e3(s_corr_e_3.c_str(), "READ");
+	TFile f_corr_mu(s_corr_mu.c_str(), "READ");
+
+	el_corr_1.reset(static_cast<TH2F*>(f_corr_e1.Get("e1")->Clone()));
+	el_corr_3.reset(static_cast<TH2F*>(f_corr_e3.Get("e3")->Clone()));
+	mu_corr.reset(static_cast<TH2F*>(f_corr_mu.Get("ebe_mu")->Clone()));
+
+	el_corr_1->SetDirectory(nullptr);
+	el_corr_3->SetDirectory(nullptr);
+	mu_corr->SetDirectory(nullptr);
+
+	x_eletaaxis_1 = el_corr_1->GetXaxis();
+	y_elpTErrOverpTaxis_1 = el_corr_1->GetYaxis();
+	minPtErrOverPtEl_1 = y_elpTErrOverpTaxis_1->GetXmin();
+	maxPtErrOverPtEl_1 = y_elpTErrOverpTaxis_1->GetXmax();
+
+	x_elpTaxis_3 = el_corr_3->GetXaxis();
+	y_eletaaxis_3 = el_corr_3->GetYaxis();
+	minPtEl_3 = x_elpTaxis_3->GetXmin();
+	maxPtEl_3 = x_elpTaxis_3->GetXmax();
+
+	x_mupTaxis = mu_corr->GetXaxis();
+	y_muetaaxis = mu_corr->GetYaxis();
+	minPtMu = x_mupTaxis->GetXmin();
+	maxPtMu = x_mupTaxis->GetXmax();
 
 }
 

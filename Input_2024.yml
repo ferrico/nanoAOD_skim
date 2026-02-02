@@ -118,7 +118,7 @@ Jet:
     30
   Etacut:
     4.7
-  bTagcut: #### medium WP for 2023 BPix deepJet
+  bTagcut: #### medium WP for 2024 UparT
     0.1272 ### from https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/#ak4-b-tagging
 
 inputdataNPV:

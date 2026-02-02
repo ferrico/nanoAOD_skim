@@ -53,3 +53,4 @@ keep mva_*
 keep Jet*
 keep pu*
 keep Flag_JetVeto*
+#keep Reg*

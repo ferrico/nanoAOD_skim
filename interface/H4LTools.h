@@ -304,6 +304,7 @@ class H4LTools {
       int nTightEleChgSum;
       int nTightMuChgSum;
       int njets_pt30_eta4p7;
+      int njets_pt30_eta2p5;
       int nBtaggedjets_pt30_eta4p7;
       int Lepointer;
     
@@ -495,6 +496,7 @@ class H4LTools {
         mva_Rhard = -999; mva_zstar = -999; mva_cosTheta_star = -999;  mva_phiZZ = -999;  mva_phi1 = -999; mva_theta1 = -999; mva_theta2 = -999;
 	mva_output_ggH = -999; mva_output_VBF = -999; mva_output_WH = -999; mva_output_qqZZ = -999;
 	njets_pt30_eta4p7 = 0;
+	njets_pt30_eta2p5 = 0;
 	nBtaggedjets_pt30_eta4p7 = 0;
         RecoFourMuEvent=false; RecoFourEEvent=false; RecoTwoETwoMuEvent=false; RecoTwoMuTwoEEvent=false;
         flag4e=false; flag4mu=false; flag2e2mu=false;
@@ -558,6 +560,13 @@ class H4LTools {
       TSpline3 *DjjZHSpline;
       TSpline3 *DjjWHSpline;
 
+          TH2F *h_Ele_ID;
+          TH2F *h_Ele_ID_Cracks;
+          TH2F *h_Ele_Reco_lowPt;
+          TH2F *h_Ele_Reco_midPt;
+          TH2F *h_Ele_Reco_highPt;
+          TH2D *h_Mu_SF;
+          TH2D *h_Mu_Unc;
 
     private:
       //KinZfitter
@@ -690,6 +699,112 @@ H4LTools::H4LTools(int year, bool isMC_){
   cutm4l2e2mu = 0;
   cutm4l4e = 0;
   cutm4l4mu = 0;
+
+
+  ///////////
+  ///////////
+  ///////////
+          TString basePath = Form("$CMSSW_BASE/src/PhysicsTools/NanoAODTools/python/postprocessing/analysis/nanoAOD_skim/data/");
+          TString f_eleID, f_eleID_Cracks, f_eleReco_lowPt, f_eleReco_midPt, f_eleReco_highPt; // filenames
+          TString f_mu;
+          
+/*	  TH2F *h_Ele_ID;
+          TH2F *h_Ele_ID_Cracks;
+          TH2F *h_Ele_Reco_lowPt;
+          TH2F *h_Ele_Reco_midPt;
+          TH2F *h_Ele_Reco_highPt;
+          TH2D *h_Mu_SF;
+          TH2D *h_Mu_Unc;
+*/
+          if (year == 20220){
+                  f_eleID           = basePath+"SF2022eleID_preEE.root";
+                  f_eleReco_highPt  = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2022preEE.root";
+                  f_eleReco_midPt   = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2022preEE.root";
+                  f_eleReco_lowPt   = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2022preEE.root";
+                  f_mu = basePath+"MuonSF_MVA_20220.root";
+          }
+          else if(year == 20225){
+                  f_eleID           = basePath+"SF2022eleID_postEE.root";
+                  f_eleReco_highPt  = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2022postEE.root";
+                  f_eleReco_midPt   = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2022postEE.root";
+                  f_eleReco_lowPt   = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2022postEE.root";
+                  f_mu = basePath+"MuonSF_MVA_20225.root";
+          }
+          else if(year == 20230){
+                  //std::cout<<"WARNING 2023 postBPix Electron ID SFs - for now using 2022postEE"<<std::endl;
+                  f_eleID          = basePath+"SF2022eleID_postEE.root";
+                  f_eleReco_highPt = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2023preBPix.root";
+                  f_eleReco_midPt  = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2023preBPix.root";
+                  f_eleReco_lowPt  = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2023preBPix.root";
+                  f_mu = basePath+"final_HZZ_SF_2023C_RMS_mupogsysts.root";
+          }
+          else if(year == 20235){
+                  //std::cout<<"WARNING 2023 postBPix Electron ID SFs - for now using 2022postEE"<<std::endl;
+                  f_eleID          = basePath+"SF2022eleID_postEE.root";
+                  f_eleReco_highPt = basePath+"egammaEffi_ptAbove75.txt_EGM2D_2023postBPix.root";
+                  f_eleReco_midPt  = basePath+"egammaEffi_ptBelow75.txt_EGM2D_2023postBPix.root";
+                  f_eleReco_lowPt  = basePath+"egammaEffi_ptBelow20.txt_EGM2D_2023postBPix.root";
+                  f_mu = basePath+"final_HZZ_SF_2023D_RMS_mupogsysts.root";
+          }
+          else if(year == 2024){
+                  //std::cout<<"WARNING 2023 postBPix Electron ID SFs - for now using 2022postEE"<<std::endl;
+                  f_eleID          = basePath+"SF2024eleID.root";
+                  f_eleReco_highPt = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/highPt/egammaEffi.txt_EGM2D.root";
+                  f_eleReco_midPt  = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/midPt/egammaEffi.txt_EGM2D.root";
+                  f_eleReco_lowPt  = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/lowPt/egammaEffi.txt_EGM2D.root";
+                  f_mu = basePath+"MuonSF_MVA_2024.root";
+          }
+          else{
+                std::cout<<"Wrong year for SF\t"<<year<<std::endl;
+		std::cout<<"Wrong year for SF\t"<<year<<std::endl;
+		std::cout<<"Wrong year for SF\t"<<year<<std::endl;
+		std::cout<<"Wrong year for SF\t"<<year<<std::endl;
+		std::cout<<"Wrong year for SF\t"<<year<<std::endl;
+		f_eleID          = basePath+"SF2024eleID.root";
+                f_eleReco_highPt = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/highPt/egammaEffi.txt_EGM2D.root";
+                f_eleReco_midPt  = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/midPt/egammaEffi.txt_EGM2D.root";
+                f_eleReco_lowPt  = "/eos/cms/store/group/phys_egamma/ScaleFactors/Data2024/EleReco/lowPt/egammaEffi.txt_EGM2D.root";
+                f_mu = basePath+"MuonSF_MVA_2024.root";
+          }
+
+                TFile* root_file = TFile::Open(f_eleID.Data(),"READ");
+                h_Ele_ID = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_ID");
+                h_Ele_ID->SetDirectory(nullptr); // This is required to detach the clone from the file
+                root_file->Close();
+
+                if (f_eleID_Cracks != "") {
+                        root_file = TFile::Open(f_eleID_Cracks.Data(),"READ");
+                        h_Ele_ID_Cracks = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_ID_Cracks");
+                        h_Ele_ID_Cracks->SetDirectory(nullptr);
+                        root_file->Close();
+                }
+
+                root_file = TFile::Open(f_eleReco_highPt.Data(),"READ");
+                h_Ele_Reco_highPt = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_Reco_highPt");
+                h_Ele_Reco_highPt->SetDirectory(nullptr);
+                root_file->Close();
+
+                root_file = TFile::Open(f_eleReco_lowPt.Data(),"READ");
+                h_Ele_Reco_lowPt = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_Reco_lowPt");
+                h_Ele_Reco_lowPt->SetDirectory(nullptr);
+                root_file->Close();
+
+                if (f_eleReco_midPt != "") {
+                        root_file = TFile::Open(f_eleReco_midPt.Data(),"READ");
+                        h_Ele_Reco_midPt = (TH2F*) root_file->Get("EGamma_SF2D")->Clone("h_Ele_Reco_midPt");
+                        h_Ele_Reco_midPt->SetDirectory(nullptr);
+                        root_file->Close();
+                }
+
+                root_file = TFile::Open(f_mu.Data(),"READ");
+                h_Mu_SF  = (TH2D*)root_file->Get("FINAL")->Clone("h_Mu_SF");
+                h_Mu_Unc = (TH2D*)root_file->Get("ERROR")->Clone("h_Mu_Unc");
+                h_Mu_SF->SetDirectory(nullptr);
+                h_Mu_Unc->SetDirectory(nullptr);
+                root_file->Close();
+  ///////////
+  ///////////
+  ///////////
 
 }
 
